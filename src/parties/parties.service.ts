@@ -12,15 +12,15 @@ export class PartiesService {
     return `This action returns all parties`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} party`;
+  findOne(partyId: string) {
+    return `This action returns a ${partyId} party`;
   }
 
-  update(id: number, updatePartyDto: UpdatePartyDto) {
-    return `This action updates a #${id} party`;
+  update(partyId: string, updatePartyDto: UpdatePartyDto) {
+    return `This action updates a ${partyId} party`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} party`;
+  remove(partyId: string) {
+    return `This action removes a ${partyId} party`;
   }
 }

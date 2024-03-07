@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { PartiesService } from './parties.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { UpdatePartyDto } from './dto/update-party.dto';
@@ -17,18 +25,21 @@ export class PartiesController {
     return this.partiesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.partiesService.findOne(+id);
+  @Get(':partyId')
+  findOne(@Param('partyId') partyId: string) {
+    return this.partiesService.findOne(partyId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePartyDto: UpdatePartyDto) {
-    return this.partiesService.update(+id, updatePartyDto);
+  @Patch(':partyId')
+  update(
+    @Param('partyId') partyId: string,
+    @Body() updatePartyDto: UpdatePartyDto,
+  ) {
+    return this.partiesService.update(partyId, updatePartyDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.partiesService.remove(+id);
+  @Delete(':partyId')
+  remove(@Param('partyId') partyId: string) {
+    return this.partiesService.remove(partyId);
   }
 }
