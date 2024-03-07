@@ -11,15 +11,20 @@ import { PartiesService } from './parties.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { UpdatePartyDto } from './dto/update-party.dto';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
+  ApiOAuth2,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { PartyDto } from './dto/party.dto';
 
+@ApiOAuth2(['parties:write'])
 @ApiTags('parties')
+@ApiBearerAuth('access-token')
+// TODO @UseGuards(JwtAuthenticationGuard)
 @Controller('parties')
 export class PartiesController {
   constructor(private readonly partiesService: PartiesService) {}
