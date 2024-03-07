@@ -18,7 +18,14 @@ describe('AppController (e2e)', () => {
   it('/ (GET)', () => {
     return request(app.getHttpServer())
       .get('/')
+      .expect(301)
+      .expect('Moved Permanently. Redirecting to https://bubblyclouds.com');
+  });
+
+  it('/health (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/health')
       .expect(200)
-      .expect('Hello World!');
+      .expect(JSON.stringify({ ok: true }));
   });
 });

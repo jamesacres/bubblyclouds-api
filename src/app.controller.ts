@@ -1,12 +1,18 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, HttpStatus, Redirect } from '@nestjs/common';
+import { ApiMovedPermanentlyResponse, ApiOkResponse } from '@nestjs/swagger';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor() {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @ApiMovedPermanentlyResponse()
+  @Redirect('https://bubblyclouds.com', HttpStatus.MOVED_PERMANENTLY)
+  index() {}
+
+  @Get('/health')
+  @ApiOkResponse()
+  health() {
+    return { ok: true };
   }
 }
