@@ -25,7 +25,6 @@ async function bootstrap() {
     .setTitle('Bubbly Clouds API')
     .setDescription('An API to power Bubbly Clouds projects')
     .setVersion('1.0')
-    .addTag('parties')
     .addBearerAuth(
       {
         description: `Please enter token in following format: Bearer <JWT>`,

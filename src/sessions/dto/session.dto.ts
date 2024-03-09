@@ -1,27 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
+import { IsDate, IsNotEmpty, IsObject, IsString } from 'class-validator';
 
-export class PartyDto {
+export class SessionDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  partyId: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  appId: string;
+  sessionId: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  partyName: string;
+  userId: string;
 
   @ApiProperty()
-  @IsString()
+  @IsObject()
   @IsNotEmpty()
-  createdByUserId: string;
+  state: object;
 
   @ApiProperty()
   @Transform(({ value }) => value && new Date(value))
