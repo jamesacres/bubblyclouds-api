@@ -15,16 +15,16 @@ import {
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
-  ApiOAuth2,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { PartyDto } from './dto/party.dto';
+import { RequirePermissions } from 'src/decorators/require-permissions.decorator';
+import { Permission } from 'src/enums/permission.enum';
 
-@ApiOAuth2(['parties:write'])
+@RequirePermissions(Permission.PARTIES_WRITE)
 @ApiTags('parties')
 @ApiBearerAuth('access-token')
-// TODO @UseGuards(JwtAuthenticationGuard)
 @Controller('parties')
 export class PartiesController {
   constructor(private readonly partiesService: PartiesService) {}
