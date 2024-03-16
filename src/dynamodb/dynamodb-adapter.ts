@@ -53,12 +53,15 @@ export class DynamoDBAdapter<T extends BaseModel> {
   async upsert(
     id: string,
     payload: Omit<T, 'expiresAt' | 'createdAt' | 'updatedAt'>,
-    owner?: Owner,
+    owner: Owner,
     expiresAt?: Date,
   ): Promise<T & { expiresAt?: Date; createdAt: Date; updatedAt: Date }> {
     const params: UpdateCommandInput = {
       TableName: this.tableName,
-      Key: { modelId: this.modelName + '-' + id },
+      Key: {
+        modelId: this.modelName + '-' + id,
+        owner: `${owner.type}-${owner.id}`,
+      },
       UpdateExpression:
         'SET payload = :payload' +
         ', createdAt = if_not_exists(createdAt, :now), updatedAt = :now' +
@@ -212,10 +215,13 @@ export class DynamoDBAdapter<T extends BaseModel> {
     return results.map((result) => resultToRecord(result));
   }
 
-  async destroy(id: string): Promise<void> {
+  async destroy(id: string, owner: Owner): Promise<void> {
     const params: DeleteCommandInput = {
       TableName: this.tableName,
-      Key: { modelId: this.modelName + '-' + id },
+      Key: {
+        modelId: this.modelName + '-' + id,
+        owner: `${owner.type}-${owner.id}`,
+      },
     };
     const command = new DeleteCommand(params);
 
