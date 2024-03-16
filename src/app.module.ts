@@ -17,6 +17,9 @@ import { DynamoDBModule } from './dynamodb/dynamodb.module';
     MembersModule,
     SessionsModule,
     DynamoDBModule.forRoot({
+      // For testing
+      // docker run -p 8000:8000 -it --rm instructure/dynamo-local-admin
+      // admin in browser, use endpoint http://localhost:8000/
       clientConfig: { region: 'eu-west-2', endpoint: 'http://localhost:8000/' },
       tableName: 'ApiTable',
     }),
