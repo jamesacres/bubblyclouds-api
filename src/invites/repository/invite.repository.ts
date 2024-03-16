@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { DynamoDBAdapter } from '../../dynamodb/dynamodb-adapter';
 import { Invite } from '../dto/invite';
 import { DynamoDBAdapterFactory } from '../../dynamodb/dynamodb-adapter.factory';
-import { nanoid } from 'nanoid';
 import { Model } from '../../types/model';
 import { InviteEntity } from '../entities/invite.entity';
 
@@ -17,6 +16,7 @@ export class InviteRepository {
   async insert(
     payload: Omit<Invite, 'inviteId' | 'createdAt' | 'updatedAt'>,
   ): Promise<Invite> {
+    const { nanoid } = await import('nanoid');
     const inviteId = nanoid();
     return this.adapter.upsert(
       inviteId,

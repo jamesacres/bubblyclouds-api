@@ -3,7 +3,6 @@ import { DynamoDBAdapter } from '../../dynamodb/dynamodb-adapter';
 import { Party } from '../dto/party';
 import { DynamoDBAdapterFactory } from '../../dynamodb/dynamodb-adapter.factory';
 import { PartyEntity } from '../entities/party.entity';
-import { nanoid } from 'nanoid';
 import { Model } from '../../types/model';
 
 @Injectable()
@@ -17,6 +16,7 @@ export class PartyRepository {
   async insert(
     payload: Omit<Party, 'partyId' | 'createdAt' | 'updatedAt'>,
   ): Promise<PartyEntity> {
+    const { nanoid } = await import('nanoid');
     const partyId = nanoid();
     return new PartyEntity(
       await this.adapter.upsert(
