@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { InvitesModule } from './invites/invites.module';
 import { MembersModule } from './members/members.module';
 import { SessionsModule } from './sessions/sessions.module';
+import { DynamoDBModule } from './dynamodb/dynamodb.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SessionsModule } from './sessions/sessions.module';
     InvitesModule,
     MembersModule,
     SessionsModule,
+    DynamoDBModule.forRoot({ region: 'eu-west-2' }),
   ],
   controllers: [AppController],
   providers: [

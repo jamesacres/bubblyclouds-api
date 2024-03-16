@@ -5,6 +5,8 @@ import { SessionWithPartiesDto } from './dto/session-with-parties.dto';
 
 @Injectable()
 export class SessionsService {
+  constructor() {}
+
   async findOne(sessionId: string): Promise<SessionWithPartiesDto> {
     // return {
     //   ...session,

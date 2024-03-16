@@ -4,6 +4,8 @@ import { MemberDto } from './dto/member.dto';
 
 @Injectable()
 export class MembersService {
+  constructor() {}
+
   create(createMemberDto: CreateMemberDto): Promise<MemberDto> {
     // - { inviteId, memberNickname }
     // - authenticated endpoint

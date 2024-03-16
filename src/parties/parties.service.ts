@@ -5,6 +5,8 @@ import { App } from 'src/enums/app.enum';
 
 @Injectable()
 export class PartiesService {
+  constructor() {}
+
   create(createPartyDto: CreatePartyDto): Promise<PartyDto> {
     // Create a new party, and automatically joins the new party
     return 'This action adds a new party' as any;

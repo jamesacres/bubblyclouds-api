@@ -2,9 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { InviteDto } from './dto/invite.dto';
 import { PublicInviteDto } from './dto/public-invite.dto';
+import { InviteRepository } from './repository/invite.repository';
 
 @Injectable()
 export class InvitesService {
+  constructor(private readonly repository: InviteRepository) {}
+
   create(createInviteDto: CreateInviteDto): Promise<InviteDto> {
     // - create a new invite to the party
     // - validate the resource was created by the userId from the request
