@@ -1,4 +1,3 @@
-import * as AWSXRay from 'aws-xray-sdk';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DynamicModule, FactoryProvider, Module } from '@nestjs/common';
@@ -17,15 +16,13 @@ export class DynamoDBModule extends ConfigurableModuleClass {
       {
         provide: DynamoDBAdapterFactory,
         useFactory: () => {
-          const dynamoDBDocumentClient = AWSXRay.captureAWSv3Client(
-            DynamoDBDocumentClient.from(
-              new DynamoDBClient(options.clientConfig),
-              {
-                marshallOptions: {
-                  removeUndefinedValues: true,
-                },
+          const dynamoDBDocumentClient = DynamoDBDocumentClient.from(
+            new DynamoDBClient(options.clientConfig),
+            {
+              marshallOptions: {
+                removeUndefinedValues: true,
               },
-            ),
+            },
           );
           return new DynamoDBAdapterFactory(
             dynamoDBDocumentClient,
