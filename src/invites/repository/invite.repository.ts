@@ -15,7 +15,7 @@ export class InviteRepository {
 
   async insert(
     payload: Omit<Invite, 'inviteId' | 'createdAt' | 'updatedAt'>,
-  ): Promise<Invite> {
+  ): Promise<InviteEntity> {
     const { nanoid } = await import('nanoid');
     const inviteId = nanoid();
     const [ownerType, ownerId] = payload.resourceId.split('-');

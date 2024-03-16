@@ -32,9 +32,7 @@ export class InvitesService {
     if (!(await this.findResource(createInviteDto.resourceId, createdBy))) {
       throw new NotFoundException('Resource not found');
     }
-    return new InviteEntity(
-      await this.inviteRepository.insert({ ...createInviteDto, createdBy }),
-    );
+    return this.inviteRepository.insert({ ...createInviteDto, createdBy });
   }
 
   async findPublicInvite(inviteId: string): Promise<PublicInviteDto> {
