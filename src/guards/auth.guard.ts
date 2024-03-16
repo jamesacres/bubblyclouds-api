@@ -15,21 +15,26 @@ import { createPublicKey } from 'crypto';
 // https://docs.nestjs.com/security/authentication
 @Injectable()
 export class AuthGuard implements CanActivate {
+  private publicKey: string;
+
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
   ) {}
 
   private async fetchPublicKey(): Promise<string> {
-    const response = await fetch('https://auth.bubblyclouds.com/jwks');
-    const jwks = await response.json();
-    const key = createPublicKey({
-      key: jwks.keys.find(
-        (key: JsonWebKey) => key.kty === 'RSA' && key.use === 'sig',
-      ),
-      format: 'jwk',
-    });
-    return key.export({ type: 'pkcs1', format: 'pem' }).toString();
+    if (!this.publicKey) {
+      const response = await fetch('https://auth.bubblyclouds.com/jwks');
+      const jwks = await response.json();
+      const key = createPublicKey({
+        key: jwks.keys.find(
+          (key: JsonWebKey) => key.kty === 'RSA' && key.use === 'sig',
+        ),
+        format: 'jwk',
+      });
+      this.publicKey = key.export({ type: 'pkcs1', format: 'pem' }).toString();
+    }
+    return this.publicKey;
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
