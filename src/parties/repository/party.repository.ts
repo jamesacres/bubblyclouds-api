@@ -22,7 +22,7 @@ export class PartyRepository {
       await this.adapter.upsert(
         partyId,
         { ...payload, partyId },
-        payload.createdBy,
+        { id: payload.createdBy, type: Model.USER },
       ),
     );
   }
@@ -33,7 +33,7 @@ export class PartyRepository {
   ): Promise<PartyEntity | undefined> {
     const payload = await this.adapter.find(
       partyId,
-      createdBy ? `${Model.USER}-${createdBy}` : undefined,
+      createdBy ? { id: createdBy, type: Model.USER } : undefined,
     );
     if (payload) {
       return new PartyEntity(payload);

@@ -22,6 +22,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { backOff } from 'exponential-backoff';
 import { BaseModel } from '../types/baseModel';
+import { Owner } from '../types/owner';
 
 const MAX_RETRIES = 5;
 
@@ -51,7 +52,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
   async upsert(
     id: string,
     payload: Omit<T, 'expiresAt' | 'createdAt' | 'updatedAt'>,
-    owner?: string,
+    owner?: Owner,
     expiresAt?: Date,
   ): Promise<T & { expiresAt?: Date; createdAt: Date; updatedAt: Date }> {
     const params: UpdateCommandInput = {
@@ -70,7 +71,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
           updatedAt: undefined,
           expiresAt: undefined,
         },
-        ...(owner ? { ':owner': owner } : {}),
+        ...(owner ? { ':owner': `${owner.type}-${owner.id}` } : {}),
         ...(expiresAt
           ? { ':expiresAt': Math.floor(expiresAt.getTime() / 1000) }
           : {}),
@@ -88,13 +89,16 @@ export class DynamoDBAdapter<T extends BaseModel> {
 
   async find(
     id: string,
-    owner?: string,
+    owner?: Owner,
   ): Promise<
     (T & { expiresAt?: Date; createdAt: Date; updatedAt: Date }) | undefined
   > {
     const params: GetCommandInput = {
       TableName: this.tableName,
-      Key: { owner, modelId: this.modelName + '-' + id },
+      Key: {
+        modelId: this.modelName + '-' + id,
+        ...(owner ? { owner: `${owner.type}-${owner.id}` } : {}),
+      },
       ProjectionExpression: 'payload, expiresAt, createdAt, updatedAt',
     };
     const command = new GetCommand(params);
@@ -125,7 +129,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
   }
 
   async findAll(
-    owner: string,
+    owner: Owner,
     type?: string,
   ): Promise<(T & { expiresAt?: Date; createdAt: Date; updatedAt: Date })[]> {
     const params: QueryCommandInput = {
@@ -133,7 +137,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
       IndexName: 'ownerIndex',
       KeyConditionExpression: `owner = :owner${type ? ` and begins_with(modelId, :type)` : ''}`,
       ExpressionAttributeValues: {
-        ':owner': owner,
+        ':owner': `${owner.type}-${owner.id}`,
         ...(type ? { ':type': type } : {}),
       },
       Limit: 1,

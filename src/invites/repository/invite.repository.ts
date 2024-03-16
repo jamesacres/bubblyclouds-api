@@ -18,16 +18,20 @@ export class InviteRepository {
   ): Promise<Invite> {
     const { nanoid } = await import('nanoid');
     const inviteId = nanoid();
+    const [ownerType, ownerId] = payload.resourceId.split('-');
+    if (!Object.values(Model).includes(ownerType as Model)) {
+      throw Error('Unsupported resourceId');
+    }
     return this.adapter.upsert(
       inviteId,
       { ...payload, inviteId },
-      payload.resourceId,
+      { id: ownerId, type: ownerType as Model },
       payload.expiresAt,
     );
   }
 
-  async find(id: string): Promise<InviteEntity | undefined> {
-    const payload = await this.adapter.find(id);
+  async find(inviteId: string): Promise<InviteEntity | undefined> {
+    const payload = await this.adapter.find(inviteId);
     if (payload) {
       return new InviteEntity(payload);
     }
