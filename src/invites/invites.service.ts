@@ -4,8 +4,8 @@ import { PublicInviteDto } from './dto/public-invite.dto';
 import { InviteRepository } from './repository/invite.repository';
 import { PartyRepository } from '../parties/repository/party.repository';
 import { Model } from '../types/model';
-import { InviteEntity } from './entities/invite.entity';
 import { PartyEntity } from 'src/parties/entities/party.entity';
+import { InviteDto } from './dto/invite.dto';
 
 @Injectable()
 export class InvitesService {
@@ -27,7 +27,7 @@ export class InvitesService {
   async create(
     createInviteDto: CreateInviteDto,
     createdBy: string,
-  ): Promise<InviteEntity> {
+  ): Promise<InviteDto> {
     // Validate the resource was created by the userId from the request
     if (!(await this.findResource(createInviteDto.resourceId, createdBy))) {
       throw new NotFoundException('Resource not found');
