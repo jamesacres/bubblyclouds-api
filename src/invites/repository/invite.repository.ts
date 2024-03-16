@@ -31,9 +31,9 @@ export class InviteRepository {
   }
 
   async find(inviteId: string): Promise<InviteEntity | undefined> {
-    const payload = await this.adapter.find(inviteId);
-    if (payload) {
-      return new InviteEntity(payload);
+    const payload = await this.adapter.findAllByModelId(inviteId);
+    if (payload.length === 1) {
+      return new InviteEntity(payload[0]);
     }
   }
 }

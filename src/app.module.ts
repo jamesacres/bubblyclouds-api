@@ -17,8 +17,8 @@ import { DynamoDBModule } from './dynamodb/dynamodb.module';
     MembersModule,
     SessionsModule,
     DynamoDBModule.forRoot({
-      clientConfig: { region: 'eu-west-2' },
-      tableName: 'tableName',
+      clientConfig: { region: 'eu-west-2', endpoint: 'http://localhost:8000/' },
+      tableName: 'ApiTable',
     }),
   ],
   controllers: [AppController],

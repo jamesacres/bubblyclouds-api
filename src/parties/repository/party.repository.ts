@@ -31,12 +31,20 @@ export class PartyRepository {
     partyId: string,
     createdBy?: string,
   ): Promise<PartyEntity | undefined> {
-    const payload = await this.adapter.find(
-      partyId,
-      createdBy ? { id: createdBy, type: Model.USER } : undefined,
-    );
-    if (payload) {
-      return new PartyEntity(payload);
+    let result;
+    if (createdBy) {
+      result = await this.adapter.findByIdAndOwner(partyId, {
+        id: createdBy,
+        type: Model.USER,
+      });
+    } else {
+      const results = await this.adapter.findAllByModelId(partyId);
+      if (results.length === 1) {
+        result = results[0];
+      }
+    }
+    if (result) {
+      return new PartyEntity(result);
     }
   }
 }

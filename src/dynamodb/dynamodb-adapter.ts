@@ -23,6 +23,7 @@ import {
 import { backOff } from 'exponential-backoff';
 import { BaseModel } from '../types/baseModel';
 import { Owner } from '../types/owner';
+import { Model } from '../types/model';
 
 const MAX_RETRIES = 5;
 
@@ -87,9 +88,9 @@ export class DynamoDBAdapter<T extends BaseModel> {
     return resultToRecord(resultAttributes);
   }
 
-  async find(
+  async findByIdAndOwner(
     id: string,
-    owner?: Owner,
+    owner: Owner,
   ): Promise<
     (T & { expiresAt?: Date; createdAt: Date; updatedAt: Date }) | undefined
   > {
@@ -97,7 +98,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
       TableName: this.tableName,
       Key: {
         modelId: this.modelName + '-' + id,
-        ...(owner ? { owner: `${owner.type}-${owner.id}` } : {}),
+        owner: `${owner.type}-${owner.id}`,
       },
       ProjectionExpression: 'payload, expiresAt, createdAt, updatedAt',
     };
@@ -128,9 +129,49 @@ export class DynamoDBAdapter<T extends BaseModel> {
     return resultToRecord(result);
   }
 
-  async findAll(
+  async findAllByModelId(
+    id: string,
+  ): Promise<(T & { expiresAt?: Date; createdAt: Date; updatedAt: Date })[]> {
+    const params: QueryCommandInput = {
+      TableName: this.tableName,
+      KeyConditionExpression: `modelId = :modelId`,
+      ExpressionAttributeValues: {
+        ':modelId': id,
+      },
+      ProjectionExpression: 'payload, expiresAt, createdAt, updatedAt',
+    };
+    const command = new QueryCommand(params);
+
+    const getResults = async () => {
+      const commandResult = await this.dynamoDBDocumentClient.send(command);
+      const result = commandResult?.Items;
+      if (!result?.length) {
+        throw Error('not found');
+      }
+      return result;
+    };
+
+    const results = (await backOff(getResults, {
+      jitter: 'full',
+      numOfAttempts: MAX_RETRIES,
+    }).catch((e) => {
+      console.warn(e);
+      return [];
+    })) as Result<T>[];
+
+    // DynamoDB can take upto 48 hours to drop expired items, so a check is required
+    results.filter((result) => {
+      const isExpired =
+        !result || (result.expiresAt && Date.now() > result.expiresAt * 1000);
+      return !isExpired;
+    });
+
+    return results.map((result) => resultToRecord(result));
+  }
+
+  async findAllByOwner(
     owner: Owner,
-    type?: string,
+    type?: Model,
   ): Promise<(T & { expiresAt?: Date; createdAt: Date; updatedAt: Date })[]> {
     const params: QueryCommandInput = {
       TableName: this.tableName,
@@ -140,7 +181,6 @@ export class DynamoDBAdapter<T extends BaseModel> {
         ':owner': `${owner.type}-${owner.id}`,
         ...(type ? { ':type': type } : {}),
       },
-      Limit: 1,
       ProjectionExpression: 'payload, expiresAt, createdAt, updatedAt',
     };
     const command = new QueryCommand(params);
