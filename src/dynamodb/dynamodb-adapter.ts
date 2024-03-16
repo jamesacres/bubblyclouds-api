@@ -75,7 +75,6 @@ export class DynamoDBAdapter<T extends BaseModel> {
           updatedAt: undefined,
           expiresAt: undefined,
         },
-        ...(owner ? { ':owner': `${owner.type}-${owner.id}` } : {}),
         ...(expiresAt
           ? { ':expiresAt': Math.floor(expiresAt.getTime() / 1000) }
           : {}),
