@@ -26,7 +26,8 @@ export class InvitesController {
   })
   @Post()
   create(@Body() createInviteDto: CreateInviteDto) {
-    return this.invitesService.create(createInviteDto);
+    const createdBy = ''; // TODO sub from token
+    return this.invitesService.create(createInviteDto, createdBy);
   }
 
   @Public()
@@ -37,6 +38,6 @@ export class InvitesController {
   })
   @Get(':inviteId')
   findOne(@Param('inviteId') inviteId: string) {
-    return this.invitesService.findOne(inviteId);
+    return this.invitesService.findPublicInvite(inviteId);
   }
 }

@@ -16,7 +16,10 @@ import { DynamoDBModule } from './dynamodb/dynamodb.module';
     InvitesModule,
     MembersModule,
     SessionsModule,
-    DynamoDBModule.forRoot({ region: 'eu-west-2' }),
+    DynamoDBModule.forRoot({
+      clientConfig: { region: 'eu-west-2' },
+      tableName: 'tableName',
+    }),
   ],
   controllers: [AppController],
   providers: [

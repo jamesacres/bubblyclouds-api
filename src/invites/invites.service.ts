@@ -1,29 +1,59 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInviteDto } from './dto/create-invite.dto';
-import { InviteDto } from './dto/invite.dto';
 import { PublicInviteDto } from './dto/public-invite.dto';
 import { InviteRepository } from './repository/invite.repository';
+import { PartyRepository } from '../parties/repository/party.repository';
+import { Model } from '../types/model';
+import { InviteEntity } from './entities/invite.entity';
+import { PartyEntity } from 'src/parties/entities/party.entity';
 
 @Injectable()
 export class InvitesService {
-  constructor(private readonly repository: InviteRepository) {}
+  constructor(
+    private readonly inviteRepository: InviteRepository,
+    private readonly partyRepository: PartyRepository,
+  ) {}
 
-  create(createInviteDto: CreateInviteDto): Promise<InviteDto> {
-    // - create a new invite to the party
-    // - validate the resource was created by the userId from the request
-    // - request { resourceId: party-{partyId}, description (e.g. party name), expiresAt, sessionId }
-    return 'This action adds a new invite' as any;
+  private async findResource(
+    resource: string,
+    createdBy?: string,
+  ): Promise<PartyEntity | undefined> {
+    const [resourceType, resourceId] = resource.split('-');
+    if (resourceType === Model.PARTY) {
+      return this.partyRepository.find(resourceId, createdBy);
+    }
   }
 
-  findOne(inviteId: string): Promise<PublicInviteDto> {
-    // - unauthenticated endpoint
-    // - lookup invite: modelId=invite-{inviteId}
-    // - Check it has not expired
-    // - lookup resource check it exists: modelId=resourceId
-    // - Return different response { inviteId, description (partyName), sessionId }
-    // - The app then:
-    //     - Logs the user in if not already logged in
-    //     - Stores sessionId which it uses to redirect after joining as a member (i.e. redirect them to the game)
-    return `This action returns a #${inviteId} invite` as any;
+  async create(
+    createInviteDto: CreateInviteDto,
+    createdBy: string,
+  ): Promise<InviteEntity> {
+    // Validate the resource was created by the userId from the request
+    if (!(await this.findResource(createInviteDto.resourceId, createdBy))) {
+      throw new NotFoundException('Resource not found');
+    }
+    return new InviteEntity(
+      await this.inviteRepository.insert({ ...createInviteDto, createdBy }),
+    );
+  }
+
+  async findPublicInvite(inviteId: string): Promise<PublicInviteDto> {
+    const invite = await this.inviteRepository.find(inviteId);
+    if (!invite) {
+      throw new NotFoundException('Invite not found');
+    }
+    // Check resource still exists
+    const resource = await this.findResource(invite.resourceId);
+    if (!resource) {
+      throw new NotFoundException('Resource not found');
+    }
+    // We expect the app to then:
+    // Logs the user in if not already logged in
+    // Stores sessionId which it uses to redirect after joining as a member (i.e. redirect them to the game)
+    return {
+      resourceId: invite.resourceId,
+      description: resource.partyName,
+      sessionId: invite.sessionId,
+    };
   }
 }

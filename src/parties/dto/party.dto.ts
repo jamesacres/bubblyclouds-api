@@ -21,7 +21,7 @@ export class PartyDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  createdByUserId: string;
+  createdBy: string;
 
   @ApiProperty()
   @Transform(({ value }) => value && new Date(value))

@@ -1,8 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Invite } from './invite';
 
-export class InviteDto {
+export class InviteDto implements Invite {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
