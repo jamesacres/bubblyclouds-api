@@ -19,7 +19,9 @@ export class SessionsController {
     type: SessionWithPartiesDto,
   })
   @Get(':sessionId')
-  findOne(@Param('sessionId') sessionId: string) {
+  findOne(
+    @Param('sessionId') sessionId: string,
+  ): Promise<SessionWithPartiesDto> {
     return this.sessionsService.findOne(sessionId);
   }
 
@@ -31,7 +33,7 @@ export class SessionsController {
   update(
     @Param('sessionId') sessionId: string,
     @Body() updateSessionDto: UpdateSessionDto,
-  ) {
+  ): Promise<SessionDto> {
     return this.sessionsService.update(sessionId, updateSessionDto);
   }
 }

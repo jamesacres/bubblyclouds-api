@@ -24,7 +24,7 @@ export class MembersController {
     type: MemberDto,
   })
   @Post()
-  create(@Body() createMemberDto: CreateMemberDto) {
+  create(@Body() createMemberDto: CreateMemberDto): Promise<MemberDto> {
     return this.membersService.create(createMemberDto);
   }
 
@@ -34,7 +34,7 @@ export class MembersController {
   })
   @Get()
   @ApiQuery({ name: 'resourceId', type: 'string', required: true })
-  findAll(@Query('resourceId') resourceId: string) {
+  findAll(@Query('resourceId') resourceId: string): Promise<MemberDto[]> {
     return this.membersService.findAll(resourceId);
   }
 }

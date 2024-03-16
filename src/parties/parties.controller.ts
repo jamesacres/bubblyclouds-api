@@ -26,7 +26,7 @@ export class PartiesController {
     type: PartyDto,
   })
   @Post()
-  create(@Body() createPartyDto: CreatePartyDto) {
+  create(@Body() createPartyDto: CreatePartyDto): Promise<PartyDto> {
     return this.partiesService.create(createPartyDto);
   }
 
@@ -36,7 +36,7 @@ export class PartiesController {
   })
   @ApiQuery({ name: 'app', enum: App, required: true })
   @Get()
-  findAll(@Query('app') app: App) {
+  findAll(@Query('app') app: App): Promise<PartyDto[]> {
     return this.partiesService.findAll(app);
   }
 }

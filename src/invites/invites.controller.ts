@@ -25,7 +25,7 @@ export class InvitesController {
     type: InviteDto,
   })
   @Post()
-  create(@Body() createInviteDto: CreateInviteDto) {
+  create(@Body() createInviteDto: CreateInviteDto): Promise<InviteDto> {
     const createdBy = ''; // TODO sub from token
     return this.invitesService.create(createInviteDto, createdBy);
   }
@@ -37,7 +37,7 @@ export class InvitesController {
     type: PublicInviteDto,
   })
   @Get(':inviteId')
-  findOne(@Param('inviteId') inviteId: string) {
+  findOne(@Param('inviteId') inviteId: string): Promise<PublicInviteDto> {
     return this.invitesService.findPublicInvite(inviteId);
   }
 }
