@@ -1,4 +1,4 @@
-import { Model } from './model';
+import { Model } from '../enums/model';
 
 export interface Owner {
   id: string;

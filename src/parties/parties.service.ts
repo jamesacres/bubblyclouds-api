@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { PartyDto } from './dto/party.dto';
-import { App } from 'src/enums/app.enum';
+import { App } from '@/types/enums/app.enum';
 
 @Injectable()
 export class PartiesService {

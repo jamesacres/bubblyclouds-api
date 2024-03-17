@@ -1,8 +1,8 @@
 import { Controller, Get, Body, Patch, Param } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { UpdateSessionDto } from './dto/update-session.dto';
-import { RequirePermissions } from 'src/decorators/require-permissions.decorator';
-import { Permission } from 'src/enums/permission.enum';
+import { RequirePermissions } from '@/decorators/require-permissions.decorator';
+import { Permission } from '@/types/enums/permission.enum';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { SessionDto } from './dto/session.dto';
 import { SessionWithPartiesDto } from './dto/session-with-parties.dto';

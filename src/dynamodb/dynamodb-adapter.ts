@@ -21,9 +21,9 @@ import {
   UpdateCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 import { backOff } from 'exponential-backoff';
-import { BaseModel } from '../types/baseModel';
-import { Owner } from '../types/owner';
-import { Model } from '../types/model';
+import { BaseModel } from '@/types/interfaces/baseModel';
+import { Owner } from '@/types/interfaces/owner';
+import { Model } from '@/types/enums/model';
 
 const MAX_RETRIES = 5;
 

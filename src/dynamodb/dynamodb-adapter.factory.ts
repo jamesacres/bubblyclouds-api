@@ -1,6 +1,6 @@
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBAdapter } from './dynamodb-adapter';
-import { BaseModel } from '../types/baseModel';
+import { BaseModel } from '@/types/interfaces/baseModel';
 
 export class DynamoDBAdapterFactory {
   constructor(

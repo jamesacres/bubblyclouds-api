@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { PublicInviteDto } from './dto/public-invite.dto';
 import { InviteRepository } from './repository/invite.repository';
-import { PartyRepository } from '../parties/repository/party.repository';
-import { Model } from '../types/model';
-import { PartyEntity } from 'src/parties/entities/party.entity';
+import { PartyRepository } from '@/parties/repository/party.repository';
+import { Model } from '@/types/enums/model';
+import { PartyEntity } from '@/parties/entities/party.entity';
 import { InviteDto } from './dto/invite.dto';
 
 @Injectable()

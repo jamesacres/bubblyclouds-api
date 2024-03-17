@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { DynamoDBAdapter } from '../../dynamodb/dynamodb-adapter';
+import { DynamoDBAdapter } from '@/dynamodb/dynamodb-adapter';
 import { Party } from '../dto/party';
-import { DynamoDBAdapterFactory } from '../../dynamodb/dynamodb-adapter.factory';
+import { DynamoDBAdapterFactory } from '@/dynamodb/dynamodb-adapter.factory';
 import { PartyEntity } from '../entities/party.entity';
-import { Model } from '../../types/model';
+import { Model } from '@/types/enums/model';
 
 @Injectable()
 export class PartyRepository {

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { DynamoDBAdapter } from '../../dynamodb/dynamodb-adapter';
+import { DynamoDBAdapter } from '@/dynamodb/dynamodb-adapter';
 import { Invite } from '../dto/invite';
-import { DynamoDBAdapterFactory } from '../../dynamodb/dynamodb-adapter.factory';
-import { Model } from '../../types/model';
+import { DynamoDBAdapterFactory } from '@/dynamodb/dynamodb-adapter.factory';
+import { Model } from '@/types/enums/model';
 import { InviteEntity } from '../entities/invite.entity';
 
 @Injectable()

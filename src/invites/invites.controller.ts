@@ -1,17 +1,18 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Request } from '@nestjs/common';
 import { InvitesService } from './invites.service';
 import { CreateInviteDto } from './dto/create-invite.dto';
-import { Permission } from 'src/enums/permission.enum';
-import { RequirePermissions } from 'src/decorators/require-permissions.decorator';
+import { Permission } from '@/types/enums/permission.enum';
+import { RequirePermissions } from '@/decorators/require-permissions.decorator';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Public } from 'src/decorators/public.decorator';
+import { Public } from '@/decorators/public.decorator';
 import { InviteDto } from './dto/invite.dto';
 import { PublicInviteDto } from './dto/public-invite.dto';
+import { RequestWithUser } from '@/types/interfaces/requestWithUser';
 
 @RequirePermissions(Permission.INVITES_WRITE)
 @ApiTags('invites')
@@ -25,8 +26,11 @@ export class InvitesController {
     type: InviteDto,
   })
   @Post()
-  create(@Body() createInviteDto: CreateInviteDto): Promise<InviteDto> {
-    const createdBy = ''; // TODO sub from token
+  create(
+    @Request() req: RequestWithUser,
+    @Body() createInviteDto: CreateInviteDto,
+  ): Promise<InviteDto> {
+    const createdBy = req.user.sub;
     return this.invitesService.create(createInviteDto, createdBy);
   }
 

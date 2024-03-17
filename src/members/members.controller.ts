@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
-import { Permission } from 'src/enums/permission.enum';
+import { Permission } from '@/types/enums/permission.enum';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -9,7 +9,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { RequirePermissions } from 'src/decorators/require-permissions.decorator';
+import { RequirePermissions } from '@/decorators/require-permissions.decorator';
 import { MemberDto } from './dto/member.dto';
 
 @RequirePermissions(Permission.MEMBERS_WRITE)

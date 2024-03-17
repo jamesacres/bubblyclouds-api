@@ -9,9 +9,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { PartyDto } from './dto/party.dto';
-import { RequirePermissions } from 'src/decorators/require-permissions.decorator';
-import { Permission } from 'src/enums/permission.enum';
-import { App } from 'src/enums/app.enum';
+import { RequirePermissions } from '@/decorators/require-permissions.decorator';
+import { Permission } from '@/types/enums/permission.enum';
+import { App } from '@/types/enums/app.enum';
 
 @RequirePermissions(Permission.PARTIES_WRITE)
 @ApiTags('parties')

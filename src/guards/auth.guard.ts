@@ -7,10 +7,12 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { IS_PUBLIC_KEY } from 'src/decorators/public.decorator';
-import { REQUIRE_PERMISSIONS_KEY } from 'src/decorators/require-permissions.decorator';
-import { Permission } from 'src/enums/permission.enum';
+import { IS_PUBLIC_KEY } from '@/decorators/public.decorator';
+import { REQUIRE_PERMISSIONS_KEY } from '@/decorators/require-permissions.decorator';
+import { Permission } from '@/types/enums/permission.enum';
 import { createPublicKey } from 'crypto';
+import { RequestWithUser } from '@/types/interfaces/requestWithUser';
+import { User } from '@/types/interfaces/user';
 
 // https://docs.nestjs.com/security/authentication
 @Injectable()
@@ -51,14 +53,14 @@ export class AuthGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    const request = context.switchToHttp().getRequest();
+    const request: RequestWithUser = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException('Missing token');
     }
     try {
       const publicKey = await this.fetchPublicKey();
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload: User = await this.jwtService.verifyAsync(token, {
         publicKey,
         algorithms: ['RS256'],
         audience: 'https://api.bubblyclouds.com',
@@ -77,6 +79,7 @@ export class AuthGuard implements CanActivate {
 
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
+      console.info('user', payload);
       request['user'] = payload;
     } catch (e) {
       console.warn(e);
