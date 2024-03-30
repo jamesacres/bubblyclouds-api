@@ -48,7 +48,10 @@ export class ApiStack extends Stack {
     const { table } = this.dynamodb();
     table.grantReadWriteData(api.fn);
 
-    // GET *
+    // GET /
+    apiGateway.root.addMethod('GET', api.integration);
+
+    // *
     apiGateway.root.addProxy({ defaultIntegration: api.integration });
   }
 
