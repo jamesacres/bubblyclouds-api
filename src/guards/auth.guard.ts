@@ -10,34 +10,17 @@ import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '@/decorators/public.decorator';
 import { REQUIRE_PERMISSIONS_KEY } from '@/decorators/require-permissions.decorator';
 import { Permission } from '@/types/enums/permission.enum';
-import { createPublicKey } from 'crypto';
 import { RequestWithUser } from '@/types/interfaces/requestWithUser';
 import { User } from '@/types/interfaces/user';
+import { fetchPublicKey } from '@/utils/fetchPublicKey';
 
 // https://docs.nestjs.com/security/authentication
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private publicKey: string;
-
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
   ) {}
-
-  private async fetchPublicKey(): Promise<string> {
-    if (!this.publicKey) {
-      const response = await fetch('https://auth.bubblyclouds.com/jwks');
-      const jwks = await response.json();
-      const key = createPublicKey({
-        key: jwks.keys.find(
-          (key: JsonWebKey) => key.kty === 'RSA' && key.use === 'sig',
-        ),
-        format: 'jwk',
-      });
-      this.publicKey = key.export({ type: 'pkcs1', format: 'pem' }).toString();
-    }
-    return this.publicKey;
-  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -59,7 +42,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Missing token');
     }
     try {
-      const publicKey = await this.fetchPublicKey();
+      const publicKey = await fetchPublicKey();
       const payload: User = await this.jwtService.verifyAsync(token, {
         publicKey,
         algorithms: ['RS256'],

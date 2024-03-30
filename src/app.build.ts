@@ -5,8 +5,12 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AllExceptionsFilter } from './exceptionFilters/all-exceptions.filter';
 import { ExpressAdapter } from '@nestjs/platform-express';
+import { fetchPublicKey } from './utils/fetchPublicKey';
 
 export async function build(express: any) {
+  // Speed up cold starts by fetching our public key now without blocking
+  void fetchPublicKey().catch((e) => console.error(e));
+
   const app = await NestFactory.create(AppModule, new ExpressAdapter(express));
   const { httpAdapter } = app.get(HttpAdapterHost);
 
