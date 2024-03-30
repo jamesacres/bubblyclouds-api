@@ -154,7 +154,7 @@ export class ApiStack extends Stack {
   }) {
     const apiFn = new Function(this, `ApiFunction`, {
       handler: 'main.handler',
-      memorySize: 128,
+      memorySize: 512,
       runtime: Runtime.NODEJS_20_X,
       timeout: Duration.seconds(15),
       logRetention: RetentionDays.ONE_WEEK,

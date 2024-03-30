@@ -117,7 +117,7 @@ exports[`Api Stack 1`] = `
         "Layers": [
           "arn:aws:lambda:eu-west-2:282860088358:layer:AWS-AppConfig-Extension:93",
         ],
-        "MemorySize": 128,
+        "MemorySize": 512,
         "Role": {
           "Fn::GetAtt": [
             "ApiFunctionServiceRole52B9747B",
@@ -342,11 +342,12 @@ exports[`Api Stack 1`] = `
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "ApiGatewayDeploymentA26796E86bf17f096042c0766d6444e84963eb5a": {
+    "ApiGatewayDeploymentA26796E843590d65c4bf00311b8265dbed654686": {
       "DependsOn": [
         "ApiGatewayproxyANYF4919107",
         "ApiGatewayproxyD06ED2EE",
         "ApiGatewayANY64A155AA",
+        "ApiGatewayGET25EBFEA3",
       ],
       "Properties": {
         "Description": "Automatically created by the RestApi construct",
@@ -362,7 +363,7 @@ exports[`Api Stack 1`] = `
       ],
       "Properties": {
         "DeploymentId": {
-          "Ref": "ApiGatewayDeploymentA26796E86bf17f096042c0766d6444e84963eb5a",
+          "Ref": "ApiGatewayDeploymentA26796E843590d65c4bf00311b8265dbed654686",
         },
         "MethodSettings": [
           {
@@ -380,6 +381,107 @@ exports[`Api Stack 1`] = `
         "TracingEnabled": true,
       },
       "Type": "AWS::ApiGateway::Stage",
+    },
+    "ApiGatewayGET25EBFEA3": {
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "GET",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":apigateway:eu-west-2:lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "ApiFunctionCE271BD4",
+                    "Arn",
+                  ],
+                },
+                "/invocations",
+              ],
+            ],
+          },
+        },
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "ApiGateway11E7F47B",
+            "RootResourceId",
+          ],
+        },
+        "RestApiId": {
+          "Ref": "ApiGateway11E7F47B",
+        },
+      },
+      "Type": "AWS::ApiGateway::Method",
+    },
+    "ApiGatewayGETApiPermissionApiStackApiGateway6929C04AGET2C5FDF4A": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ApiFunctionCE271BD4",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:eu-west-2:12345678:",
+              {
+                "Ref": "ApiGateway11E7F47B",
+              },
+              "/",
+              {
+                "Ref": "ApiGatewayDeploymentStageprod1C6D5CD6",
+              },
+              "/GET/",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "ApiGatewayGETApiPermissionTestApiStackApiGateway6929C04AGET33CE23F3": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ApiFunctionCE271BD4",
+            "Arn",
+          ],
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":execute-api:eu-west-2:12345678:",
+              {
+                "Ref": "ApiGateway11E7F47B",
+              },
+              "/test-invoke-stage/GET/",
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
     },
     "ApiGatewayproxyANYApiPermissionApiStackApiGateway6929C04AANYproxyD75CDFA0": {
       "Properties": {
