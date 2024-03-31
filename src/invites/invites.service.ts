@@ -25,14 +25,20 @@ export class InvitesService {
   }
 
   async create(
-    createInviteDto: CreateInviteDto,
+    { expiresAt, resourceId, description, sessionId }: CreateInviteDto,
     createdBy: string,
   ): Promise<InviteDto> {
     // Validate the resource was created by the userId from the request
-    if (!(await this.findResource(createInviteDto.resourceId, createdBy))) {
+    if (!(await this.findResource(resourceId, createdBy))) {
       throw new NotFoundException('Resource not found');
     }
-    return this.inviteRepository.insert({ ...createInviteDto, createdBy });
+    return this.inviteRepository.insert({
+      resourceId,
+      description,
+      sessionId,
+      createdBy,
+      expiresAt,
+    });
   }
 
   async findPublicInvite(inviteId: string): Promise<PublicInviteDto> {

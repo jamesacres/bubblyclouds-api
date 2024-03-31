@@ -9,11 +9,12 @@ export class PartiesService {
   constructor(private readonly partyRepository: PartyRepository) {}
 
   async create(
-    createPartyDto: CreatePartyDto,
+    { appId, partyName }: CreatePartyDto,
     createdBy: string,
   ): Promise<PartyDto> {
     const party = await this.partyRepository.insert({
-      ...createPartyDto,
+      appId,
+      partyName,
       createdBy,
     });
 
