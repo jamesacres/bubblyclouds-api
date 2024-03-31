@@ -4,6 +4,7 @@ import { Invite } from '../dto/invite';
 import { DynamoDBAdapterFactory } from '@/dynamodb/dynamodb-adapter.factory';
 import { Model } from '@/types/enums/model';
 import { InviteEntity } from '../entities/invite.entity';
+import { splitModelId } from '@/utils/splitModelId';
 
 @Injectable()
 export class InviteRepository {
@@ -18,10 +19,7 @@ export class InviteRepository {
   ): Promise<InviteEntity> {
     const { nanoid } = await import('nanoid');
     const inviteId = nanoid();
-    const [ownerType, ownerId] = payload.resourceId.split('-');
-    if (!Object.values(Model).includes(ownerType as Model)) {
-      throw Error('Unsupported resourceId');
-    }
+    const [ownerType, ownerId] = splitModelId(payload.resourceId);
     return this.adapter.upsert(
       inviteId,
       { ...payload, inviteId },

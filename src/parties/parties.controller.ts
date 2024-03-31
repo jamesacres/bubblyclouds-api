@@ -55,10 +55,13 @@ export class PartiesController {
   })
   @ApiQuery({ name: 'app', enum: App, required: true })
   @Get()
-  findAll(@Query('app') app: App): Promise<PartyDto[]> {
+  findAll(
+    @Request() req: RequestWithUser,
+    @Query('app') app: App,
+  ): Promise<PartyDto[]> {
     if (!this.validateApp(app)) {
       throw new BadRequestException('Invalid app');
     }
-    return this.partiesService.findAll(app);
+    return this.partiesService.findAllForUser(req.user.sub, app);
   }
 }

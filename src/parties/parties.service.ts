@@ -3,13 +3,19 @@ import { CreatePartyDto } from './dto/create-party.dto';
 import { PartyDto } from './dto/party.dto';
 import { App } from '@/types/enums/app.enum';
 import { PartyRepository } from './repository/party.repository';
+import { MemberRepository } from '@/members/repository/member.repository';
+import { Model } from '@/types/enums/model';
+import { PartyEntity } from './entities/party.entity';
 
 @Injectable()
 export class PartiesService {
-  constructor(private readonly partyRepository: PartyRepository) {}
+  constructor(
+    private readonly partyRepository: PartyRepository,
+    private readonly memberRepository: MemberRepository,
+  ) {}
 
   async create(
-    { appId, partyName }: CreatePartyDto,
+    { appId, partyName, memberNickname }: CreatePartyDto,
     createdBy: string,
   ): Promise<PartyDto> {
     const party = await this.partyRepository.insert({
@@ -18,13 +24,34 @@ export class PartiesService {
       createdBy,
     });
 
-    // TODO Automatically join the new party
+    // Creator automatically becomes a member
+    await this.memberRepository.insert({
+      memberNickname,
+      resourceId: `${Model.PARTY}-${party.partyId}`,
+      userId: createdBy,
+    });
 
     return party;
   }
 
-  findAll(app: App): Promise<PartyDto[]> {
-    // Lookup parties the user is a member of: modelId=member-user-{userId} where uid begins with party-{app}-
-    return `This action returns all parties` as any;
+  async findAllForUser(userId: string, app: App): Promise<PartyDto[]> {
+    const members = await this.memberRepository.findAllForUser(
+      userId,
+      Model.PARTY,
+      app,
+    );
+    const partyIds = members.map((member) =>
+      member.resourceId.replace(`${Model.PARTY}-`, ''),
+    );
+
+    const parties: PartyEntity[] = [];
+    for (const partyId of partyIds) {
+      const party = await this.partyRepository.find(partyId);
+      if (party) {
+        parties.push(party);
+      }
+    }
+
+    return parties;
   }
 }

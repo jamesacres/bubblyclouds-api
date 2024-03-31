@@ -17,7 +17,7 @@ export class PartyRepository {
     payload: Omit<Party, 'partyId' | 'createdAt' | 'updatedAt'>,
   ): Promise<PartyEntity> {
     const { nanoid } = await import('nanoid');
-    const partyId = nanoid();
+    const partyId = `${payload.appId}-${nanoid()}`;
     return new PartyEntity(
       await this.adapter.upsert(
         partyId,

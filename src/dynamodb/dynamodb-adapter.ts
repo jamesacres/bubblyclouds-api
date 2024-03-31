@@ -132,12 +132,19 @@ export class DynamoDBAdapter<T extends BaseModel> {
 
   async findAllByModelId(
     id: string,
+    owner?: { type: Model; idPrefix?: string },
   ): Promise<(T & { expiresAt?: Date; createdAt: Date; updatedAt: Date })[]> {
     const params: QueryCommandInput = {
       TableName: this.tableName,
-      KeyConditionExpression: `modelId = :modelId`,
+      KeyConditionExpression: `modelId = :modelId${owner ? ` and begins_with(#owner, :ownerPrefix)` : ''}`,
+      ...(owner ? { ExpressionAttributeNames: { '#owner': 'owner' } } : {}),
       ExpressionAttributeValues: {
-        ':modelId': id,
+        ':modelId': this.modelName + '-' + id,
+        ...(owner
+          ? {
+              ':ownerPrefix': `${owner.type}-${owner.idPrefix !== undefined ? owner.idPrefix : ''}`,
+            }
+          : {}),
       },
       ProjectionExpression: 'payload, expiresAt, createdAt, updatedAt',
     };
