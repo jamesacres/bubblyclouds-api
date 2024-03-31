@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Request } from '@nestjs/common';
 import { PartiesService } from './parties.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import {
@@ -12,6 +12,7 @@ import { PartyDto } from './dto/party.dto';
 import { RequirePermissions } from '@/decorators/require-permissions.decorator';
 import { Permission } from '@/types/enums/permission.enum';
 import { App } from '@/types/enums/app.enum';
+import { RequestWithUser } from '@/types/interfaces/requestWithUser';
 
 @RequirePermissions(Permission.PARTIES_WRITE)
 @ApiTags('parties')
@@ -26,8 +27,12 @@ export class PartiesController {
     type: PartyDto,
   })
   @Post()
-  create(@Body() createPartyDto: CreatePartyDto): Promise<PartyDto> {
-    return this.partiesService.create(createPartyDto);
+  create(
+    @Request() req: RequestWithUser,
+    @Body() createPartyDto: CreatePartyDto,
+  ): Promise<PartyDto> {
+    const createdBy = req.user.sub;
+    return this.partiesService.create(createPartyDto, createdBy);
   }
 
   @ApiOkResponse({

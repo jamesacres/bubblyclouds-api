@@ -2,14 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { PartyDto } from './dto/party.dto';
 import { App } from '@/types/enums/app.enum';
+import { PartyRepository } from './repository/party.repository';
 
 @Injectable()
 export class PartiesService {
-  constructor() {}
+  constructor(private readonly partyRepository: PartyRepository) {}
 
-  create(createPartyDto: CreatePartyDto): Promise<PartyDto> {
-    // Create a new party, and automatically joins the new party
-    return 'This action adds a new party' as any;
+  async create(
+    createPartyDto: CreatePartyDto,
+    createdBy: string,
+  ): Promise<PartyDto> {
+    const party = await this.partyRepository.insert({
+      ...createPartyDto,
+      createdBy,
+    });
+
+    // TODO Automatically join the new party
+
+    return party;
   }
 
   findAll(app: App): Promise<PartyDto[]> {

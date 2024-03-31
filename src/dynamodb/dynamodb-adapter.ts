@@ -65,7 +65,6 @@ export class DynamoDBAdapter<T extends BaseModel> {
       UpdateExpression:
         'SET payload = :payload' +
         ', createdAt = if_not_exists(createdAt, :now), updatedAt = :now' +
-        (owner ? ', owner = :owner' : '') +
         (expiresAt ? ', expiresAt = :expiresAt' : ''),
       ExpressionAttributeValues: {
         ':now': Math.floor(new Date().getTime() / 1000),
@@ -178,7 +177,8 @@ export class DynamoDBAdapter<T extends BaseModel> {
     const params: QueryCommandInput = {
       TableName: this.tableName,
       IndexName: 'ownerIndex',
-      KeyConditionExpression: `owner = :owner${type ? ` and begins_with(modelId, :type)` : ''}`,
+      KeyConditionExpression: `#owner = :owner${type ? ` and begins_with(modelId, :type)` : ''}`,
+      ExpressionAttributeNames: { '#owner': 'owner' },
       ExpressionAttributeValues: {
         ':owner': `${owner.type}-${owner.id}`,
         ...(type ? { ':type': type } : {}),
