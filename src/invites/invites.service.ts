@@ -16,12 +16,12 @@ export class InvitesService {
   ) {}
 
   private async findResource(
-    resource: string,
+    resourceId: string,
     createdBy?: string,
   ): Promise<PartyEntity | undefined> {
-    const [resourceType, resourceId] = splitModelId(resource);
-    if (resourceType === Model.PARTY) {
-      return this.partyRepository.find(resourceId, createdBy);
+    const [type, id] = splitModelId(resourceId);
+    if (type === Model.PARTY) {
+      return this.partyRepository.find(id, createdBy);
     }
   }
 

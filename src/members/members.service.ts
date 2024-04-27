@@ -1,19 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { MemberDto } from './dto/member.dto';
+import { InvitesService } from '@/invites/invites.service';
+import { MemberRepository } from './repository/member.repository';
 
 @Injectable()
 export class MembersService {
-  constructor() {}
+  constructor(
+    private inviteService: InvitesService,
+    private memberRepository: MemberRepository,
+  ) {}
 
-  create(createMemberDto: CreateMemberDto): Promise<MemberDto> {
-    // - { inviteId, memberNickname }
-    // - authenticated endpoint
-    // - lookup invite: modelId=invite-{inviteId}
-    // - Check it has not expired
-    // - lookup resource check it exists: modelId=resourceId
-    // - upsert member record
-    return 'This action adds a new member' as any;
+  async create(
+    createMemberDto: CreateMemberDto,
+    createdBy: string,
+  ): Promise<MemberDto> {
+    const invite = await this.inviteService.findPublicInvite(
+      createMemberDto.inviteId,
+    );
+    return this.memberRepository.insert({
+      memberNickname: createMemberDto.memberNickname,
+      resourceId: invite.resourceId,
+      userId: createdBy,
+    });
   }
 
   findAll(resourceId: string): Promise<MemberDto[]> {

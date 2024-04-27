@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Request } from '@nestjs/common';
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { Permission } from '@/types/enums/permission.enum';
@@ -11,6 +11,7 @@ import {
 } from '@nestjs/swagger';
 import { RequirePermissions } from '@/decorators/require-permissions.decorator';
 import { MemberDto } from './dto/member.dto';
+import { RequestWithUser } from '@/types/interfaces/requestWithUser';
 
 @RequirePermissions(Permission.MEMBERS_WRITE)
 @ApiTags('members')
@@ -24,8 +25,12 @@ export class MembersController {
     type: MemberDto,
   })
   @Post()
-  create(@Body() createMemberDto: CreateMemberDto): Promise<MemberDto> {
-    return this.membersService.create(createMemberDto);
+  create(
+    @Request() req: RequestWithUser,
+    @Body() createMemberDto: CreateMemberDto,
+  ): Promise<MemberDto> {
+    const createdBy = req.user.sub;
+    return this.membersService.create(createMemberDto, createdBy);
   }
 
   @ApiOkResponse({
