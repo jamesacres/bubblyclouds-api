@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { AllExceptionsFilter } from './exceptionFilters/all-exceptions.filter';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { fetchPublicKey } from './utils/fetchPublicKey';
+import { DatePipe } from './pipes/datePipe';
 
 export async function build(express: any) {
   // Speed up cold starts by fetching our public key now without blocking
@@ -15,6 +16,8 @@ export async function build(express: any) {
   const { httpAdapter } = app.get(HttpAdapterHost);
 
   app.use(helmet());
+
+  app.useGlobalPipes(new DatePipe());
 
   app.useGlobalPipes(
     new ValidationPipe({

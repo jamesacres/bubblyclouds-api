@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
 import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Invite } from './invite';
 
@@ -32,17 +31,15 @@ export class InviteDto implements Invite {
   createdBy: string;
 
   @ApiProperty()
-  @Transform(({ value }) => value && new Date(value))
+  // DatePipe transforms string to date
   @IsDate()
   expiresAt: Date;
 
   @ApiProperty()
-  @Transform(({ value }) => value && new Date(value))
   @IsDate()
   createdAt: Date;
 
   @ApiProperty()
-  @Transform(({ value }) => value && new Date(value))
   @IsDate()
   updatedAt: Date;
 }

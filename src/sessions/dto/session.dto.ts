@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
 import { IsDate, IsNotEmpty, IsObject, IsString } from 'class-validator';
 
 export class SessionDto {
@@ -19,12 +18,10 @@ export class SessionDto {
   state: object;
 
   @ApiProperty()
-  @Transform(({ value }) => value && new Date(value))
   @IsDate()
   createdAt: Date;
 
   @ApiProperty()
-  @Transform(({ value }) => value && new Date(value))
   @IsDate()
   updatedAt: Date;
 }
