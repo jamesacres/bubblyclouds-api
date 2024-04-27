@@ -39,7 +39,11 @@ export class MembersController {
   })
   @Get()
   @ApiQuery({ name: 'resourceId', type: 'string', required: true })
-  findAll(@Query('resourceId') resourceId: string): Promise<MemberDto[]> {
-    return this.membersService.findAll(resourceId);
+  findAll(
+    @Request() req: RequestWithUser,
+    @Query('resourceId') resourceId: string,
+  ): Promise<MemberDto[]> {
+    const requestedBy = req.user.sub;
+    return this.membersService.findAll(resourceId, requestedBy);
   }
 }
