@@ -57,7 +57,7 @@ export class InvitesService {
     // Stores sessionId which it uses to redirect after joining as a member (i.e. redirect them to the game)
     return {
       resourceId: invite.resourceId,
-      description: resource.partyName,
+      description: invite.description,
       sessionId: invite.sessionId,
     };
   }
