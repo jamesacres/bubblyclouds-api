@@ -1,18 +1,18 @@
 import { ApiExtraModels, ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { SessionDto } from './session.dto';
 
-class PartySession {
+export class PartyMemberSession {
   @ApiProperty({
     type: 'object',
     additionalProperties: { $ref: getSchemaPath(SessionDto) },
   })
-  members: Record<string, SessionDto>;
+  memberSessions: Record<string, SessionDto>;
 }
-@ApiExtraModels(PartySession)
+@ApiExtraModels(PartyMemberSession)
 export class SessionWithPartiesDto extends SessionDto {
   @ApiProperty({
     type: 'object',
-    additionalProperties: { $ref: getSchemaPath(PartySession) },
+    additionalProperties: { $ref: getSchemaPath(PartyMemberSession) },
   })
-  parties: Record<string, PartySession>;
+  parties: Record<string, PartyMemberSession>;
 }

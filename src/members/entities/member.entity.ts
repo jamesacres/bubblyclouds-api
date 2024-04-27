@@ -1,4 +1,6 @@
+import { SessionRepository } from '@/sessions/repository/session.repository';
 import { Member } from '../dto/member';
+import { SessionEntity } from '@/sessions/entities/session.entity';
 
 export class MemberEntity implements Member {
   userId: string;
@@ -19,5 +21,12 @@ export class MemberEntity implements Member {
     this.memberNickname = memberNickname;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+  }
+
+  async getSession(
+    sessionId: string,
+    sessionRepository: SessionRepository,
+  ): Promise<SessionEntity | undefined> {
+    return sessionRepository.find(sessionId, this.userId);
   }
 }

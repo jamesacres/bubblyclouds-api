@@ -1,4 +1,7 @@
+import { MemberRepository } from '@/members/repository/member.repository';
 import { Party } from '../dto/party';
+import { Model } from '@/types/enums/model';
+import { MemberEntity } from '@/members/entities/member.entity';
 
 export class PartyEntity implements Party {
   partyId: string;
@@ -22,5 +25,13 @@ export class PartyEntity implements Party {
     this.createdBy = createdBy;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+  }
+
+  public async findMembers(
+    memberRepository: MemberRepository,
+  ): Promise<MemberEntity[]> {
+    return memberRepository.findAllMembersForResource(
+      `${Model.PARTY}-${this.partyId}`,
+    );
   }
 }

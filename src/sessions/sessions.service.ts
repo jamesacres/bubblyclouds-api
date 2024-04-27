@@ -1,39 +1,77 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateSessionDto } from './dto/update-session.dto';
-import { SessionDto } from './dto/session.dto';
-import { SessionWithPartiesDto } from './dto/session-with-parties.dto';
+import {
+  PartyMemberSession,
+  SessionWithPartiesDto,
+} from './dto/session-with-parties.dto';
+import { SessionRepository } from './repository/session.repository';
+import { splitSessionId } from '@/utils/splitSessionId';
+import { PartiesService } from '@/parties/parties.service';
+import { MemberRepository } from '@/members/repository/member.repository';
 
 @Injectable()
 export class SessionsService {
-  constructor() {}
+  constructor(
+    private sessionRepository: SessionRepository,
+    private partiesService: PartiesService,
+    private memberRepository: MemberRepository,
+  ) {}
 
-  async findOne(sessionId: string): Promise<SessionWithPartiesDto> {
-    // return {
-    //   ...session,
-    //   parties: { partyId: { members: { userId: { ...userSession } } } },
-    // };
-    // - authenticated endpoint
-    // - returns game session for the game for the authenticated user
-    // - Lookup parties the user is a member of for the app type
-    // - For each party, lookup party members
-    // - For each member (except self), lookup session state and return
-    // - lookup game for user: modelId=game-{gameid} uid={userId}
-    // - { ...session, parties: { [partyId]: { members: { [userId]: session } } } }
-    return `This action returns a #${sessionId} session` as any;
+  async findPartyMemberSessions(
+    sessionId: string,
+    userId: string,
+  ): Promise<Record<string, PartyMemberSession>> {
+    const result: SessionWithPartiesDto['parties'] = {};
+    const { app } = splitSessionId(sessionId);
+    const parties = await this.partiesService.findAllForUser(userId, app);
+    for (const party of parties) {
+      result[party.partyId] = { memberSessions: {} };
+      const members = await party.findMembers(this.memberRepository);
+      for (const member of members.filter(
+        (member) => member.userId !== userId,
+      )) {
+        const memberSession = await member.getSession(
+          sessionId,
+          this.sessionRepository,
+        );
+        if (memberSession) {
+          result[party.partyId].memberSessions[memberSession.userId] =
+            memberSession;
+        }
+      }
+    }
+    return result;
   }
 
-  update(
+  async findOne(
     sessionId: string,
+    userId: string,
+  ): Promise<SessionWithPartiesDto> {
+    const session = await this.sessionRepository.find(sessionId, userId);
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+    const result: SessionWithPartiesDto = {
+      ...session,
+      parties: await this.findPartyMemberSessions(sessionId, userId),
+    };
+    return result;
+  }
+
+  async update(
+    sessionId: string,
+    userId: string,
     updateSessionDto: UpdateSessionDto,
-  ): Promise<SessionDto> {
-    // parse sessionId
-    // sessionId: e.g. {appId}-1 (i.e. sudoku game 1)
-    // reject if app not in enum, and if the id is not expected format
-    // - check state payload is expected for the app type
-    // - authenticated endpoint
-    // - upsert game state for user
-    // // ensure we don't update createdAt
-    // #createdAt = if_not_exists(#createdAt, :createdAt)
-    return `This action updates a #${sessionId} session` as any;
+  ): Promise<SessionWithPartiesDto> {
+    const session = await this.sessionRepository.upsert(
+      sessionId,
+      userId,
+      updateSessionDto,
+    );
+    const result: SessionWithPartiesDto = {
+      ...session,
+      parties: await this.findPartyMemberSessions(sessionId, userId),
+    };
+    return result;
   }
 }

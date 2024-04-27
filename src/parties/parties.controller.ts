@@ -21,6 +21,7 @@ import { RequirePermissions } from '@/decorators/require-permissions.decorator';
 import { Permission } from '@/types/enums/permission.enum';
 import { App } from '@/types/enums/app.enum';
 import { RequestWithUser } from '@/types/interfaces/requestWithUser';
+import { validateApp } from '@/utils/validateApp';
 
 @RequirePermissions(Permission.PARTIES_WRITE)
 @ApiTags('parties')
@@ -28,9 +29,6 @@ import { RequestWithUser } from '@/types/interfaces/requestWithUser';
 @Controller('parties')
 export class PartiesController {
   constructor(private readonly partiesService: PartiesService) {}
-
-  private validateApp = (app: string) =>
-    Object.values(App).includes(app as App);
 
   @ApiCreatedResponse({
     description:
@@ -42,7 +40,7 @@ export class PartiesController {
     @Request() req: RequestWithUser,
     @Body() createPartyDto: CreatePartyDto,
   ): Promise<PartyDto> {
-    if (!this.validateApp(createPartyDto.appId)) {
+    if (!validateApp(createPartyDto.appId)) {
       throw new BadRequestException('Invalid app');
     }
     const createdBy = req.user.sub;
@@ -59,7 +57,7 @@ export class PartiesController {
     @Request() req: RequestWithUser,
     @Query('app') app: App,
   ): Promise<PartyDto[]> {
-    if (!this.validateApp(app)) {
+    if (!validateApp(app)) {
       throw new BadRequestException('Invalid app');
     }
     return this.partiesService.findAllForUser(req.user.sub, app);

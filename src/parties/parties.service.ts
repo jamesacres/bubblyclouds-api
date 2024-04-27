@@ -34,7 +34,7 @@ export class PartiesService {
     return party;
   }
 
-  async findAllForUser(userId: string, app: App): Promise<PartyDto[]> {
+  async findAllForUser(userId: string, app: App): Promise<PartyEntity[]> {
     const members = await this.memberRepository.findAllForUser(
       userId,
       Model.PARTY,
