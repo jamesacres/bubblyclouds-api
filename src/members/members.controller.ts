@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Query, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  Request,
+  BadRequestException,
+} from '@nestjs/common';
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { Permission } from '@/types/enums/permission.enum';
@@ -43,6 +51,9 @@ export class MembersController {
     @Request() req: RequestWithUser,
     @Query('resourceId') resourceId: string,
   ): Promise<MemberDto[]> {
+    if (!resourceId) {
+      throw new BadRequestException('resourceId required');
+    }
     const requestedBy = req.user.sub;
     return this.membersService.findAll(resourceId, requestedBy);
   }
