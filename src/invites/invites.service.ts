@@ -6,6 +6,7 @@ import { PartyRepository } from '@/parties/repository/party.repository';
 import { Model } from '@/types/enums/model';
 import { PartyEntity } from '@/parties/entities/party.entity';
 import { InviteDto } from './dto/invite.dto';
+import { splitModelId } from '@/utils/splitModelId';
 
 @Injectable()
 export class InvitesService {
@@ -18,7 +19,7 @@ export class InvitesService {
     resource: string,
     createdBy?: string,
   ): Promise<PartyEntity | undefined> {
-    const [resourceType, resourceId] = resource.split('-');
+    const [resourceType, resourceId] = splitModelId(resource);
     if (resourceType === Model.PARTY) {
       return this.partyRepository.find(resourceId, createdBy);
     }
