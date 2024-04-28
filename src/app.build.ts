@@ -16,6 +16,7 @@ export async function build(express: any) {
   const { httpAdapter } = app.get(HttpAdapterHost);
 
   app.use(helmet());
+  app.enableCors();
 
   app.useGlobalPipes(new DatePipe());
 
