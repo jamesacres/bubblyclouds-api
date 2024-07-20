@@ -8,6 +8,8 @@ import { SessionRepository } from './repository/session.repository';
 import { splitSessionId } from '@/utils/splitSessionId';
 import { PartiesService } from '@/parties/parties.service';
 import { MemberRepository } from '@/members/repository/member.repository';
+import { SessionEntity } from './entities/session.entity';
+import { App } from '@/types/enums/app.enum';
 
 @Injectable()
 export class SessionsService {
@@ -73,5 +75,9 @@ export class SessionsService {
       parties: await this.findPartyMemberSessions(sessionId, userId),
     };
     return result;
+  }
+
+  async findAllForUser(userId: string, app: App): Promise<SessionEntity[]> {
+    return this.sessionRepository.findAllForUser(userId, app);
   }
 }

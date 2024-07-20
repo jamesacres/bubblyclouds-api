@@ -34,7 +34,7 @@ export class MemberRepository {
         id: ownerId,
         type: ownerType as Model,
       },
-      Model.MEMBER,
+      { type: Model.MEMBER },
     );
     return results.map((result) => new MemberEntity(result));
   }

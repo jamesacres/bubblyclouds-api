@@ -4,6 +4,7 @@ import { Session } from '../dto/session';
 import { DynamoDBAdapterFactory } from '@/dynamodb/dynamodb-adapter.factory';
 import { SessionEntity } from '../entities/session.entity';
 import { Model } from '@/types/enums/model';
+import { App } from '@/types/enums/app.enum';
 
 @Injectable()
 export class SessionRepository {
@@ -38,5 +39,16 @@ export class SessionRepository {
     if (result) {
       return new SessionEntity(result);
     }
+  }
+
+  async findAllForUser(createdBy: string, app: App): Promise<SessionEntity[]> {
+    const results = await this.adapter.findAllByOwner(
+      {
+        id: createdBy,
+        type: Model.USER,
+      },
+      { type: Model.SESSION, idPrefix: app },
+    );
+    return results.map((result) => new SessionEntity(result));
   }
 }
