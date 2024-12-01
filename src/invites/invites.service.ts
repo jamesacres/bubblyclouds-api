@@ -26,7 +26,13 @@ export class InvitesService {
   }
 
   async create(
-    { expiresAt, resourceId, description, sessionId }: CreateInviteDto,
+    {
+      expiresAt,
+      resourceId,
+      description,
+      sessionId,
+      redirectUri,
+    }: CreateInviteDto,
     createdBy: string,
   ): Promise<InviteDto> {
     // Validate the resource was created by the userId from the request
@@ -37,6 +43,7 @@ export class InvitesService {
       resourceId,
       description,
       sessionId,
+      redirectUri,
       createdBy,
       expiresAt,
     });
