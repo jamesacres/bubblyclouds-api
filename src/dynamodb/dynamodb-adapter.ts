@@ -167,6 +167,9 @@ export class DynamoDBAdapter<T extends BaseModel> {
       return [];
     })) as Result<T>[];
 
+    // TODO check LastEvaluatedKey and request next page
+    // TODO test with page size https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.Pagination.html
+
     // DynamoDB can take upto 48 hours to drop expired items, so a check is required
     results.filter((result) => {
       const isExpired =
@@ -214,6 +217,9 @@ export class DynamoDBAdapter<T extends BaseModel> {
       console.warn(e);
       return [];
     })) as Result<T>[];
+
+    // TODO check LastEvaluatedKey and request next page
+    // TODO test with page size https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.Pagination.html
 
     // DynamoDB can take upto 48 hours to drop expired items, so a check is required
     results.filter((result) => {

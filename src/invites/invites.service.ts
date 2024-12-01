@@ -54,11 +54,12 @@ export class InvitesService {
     }
     // We expect the app to then:
     // Logs the user in if not already logged in
-    // Stores sessionId which it uses to redirect after joining as a member (i.e. redirect them to the game)
+    // Stores sessionId and redirectUri which it uses to redirect after joining as a member (i.e. redirect them to the game)
     return {
       resourceId: invite.resourceId,
       description: invite.description,
       sessionId: invite.sessionId,
+      redirectUri: invite.redirectUri,
     };
   }
 }

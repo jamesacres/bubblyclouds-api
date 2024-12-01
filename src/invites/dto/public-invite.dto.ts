@@ -5,4 +5,5 @@ export class PublicInviteDto extends PickType(InviteDto, [
   'description',
   'resourceId',
   'sessionId',
+  'redirectUri',
 ]) {}

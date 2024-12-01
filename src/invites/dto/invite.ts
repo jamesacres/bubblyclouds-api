@@ -3,6 +3,7 @@ export interface Invite {
   resourceId: string;
   description?: string;
   sessionId?: string;
+  redirectUri?: string;
   createdBy: string;
   expiresAt: Date;
   createdAt: Date;

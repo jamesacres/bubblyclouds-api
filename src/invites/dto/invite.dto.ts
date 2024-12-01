@@ -25,6 +25,12 @@ export class InviteDto implements Invite {
   @IsNotEmpty()
   sessionId?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  redirectUri?: string;
+
   @ApiProperty()
   @IsString()
   @IsNotEmpty()

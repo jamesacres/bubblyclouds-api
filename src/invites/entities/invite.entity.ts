@@ -5,6 +5,7 @@ export class InviteEntity implements Invite {
   resourceId: string;
   description?: string;
   sessionId?: string;
+  redirectUri?: string;
   createdBy: string;
   expiresAt: Date;
   createdAt: Date;
@@ -15,6 +16,7 @@ export class InviteEntity implements Invite {
     resourceId,
     description,
     sessionId,
+    redirectUri,
     createdBy,
     expiresAt,
     createdAt,
@@ -24,6 +26,7 @@ export class InviteEntity implements Invite {
     this.resourceId = resourceId;
     this.description = description;
     this.sessionId = sessionId;
+    this.redirectUri = redirectUri;
     this.createdBy = createdBy;
     this.expiresAt = expiresAt;
     this.createdAt = createdAt;
