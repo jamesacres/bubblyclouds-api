@@ -9,6 +9,11 @@
         "include": "../wasm",
         "outDir": "dist/lib/qqwing/wasm",
         "watchAssets": true
+      },
+      {
+        "include": "../wasm",
+        "outDir": "dist/wasm",
+        "watchAssets": true
       }
     ]
   }
