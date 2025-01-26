@@ -4,4 +4,5 @@ export enum Model {
   INVITE = 'invite',
   MEMBER = 'member',
   SESSION = 'session',
+  SUDOKU = 'sudoku',
 }
