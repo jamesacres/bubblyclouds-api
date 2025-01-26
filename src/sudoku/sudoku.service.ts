@@ -8,8 +8,7 @@ export class SudokuService {
   constructor() {}
 
   async sudokuOfTheDay(difficulty: Difficulty): Promise<Sudoku> {
-    console.info(difficulty);
-    await qqwing.version();
-    return { initial: '', final: '' };
+    const { initial, final } = await qqwing.generate(difficulty);
+    return { initial, final };
   }
 }
