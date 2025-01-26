@@ -38,7 +38,7 @@ export class SessionsController {
   })
   @ApiQuery({ name: 'app', enum: App, required: true })
   @Get()
-  async findAllx(
+  async findAll(
     @Request() req: RequestWithUser,
     @Query('app') app: App,
   ): Promise<any[]> {

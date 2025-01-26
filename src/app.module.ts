@@ -8,6 +8,7 @@ import { InvitesModule } from './invites/invites.module';
 import { MembersModule } from './members/members.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { DynamoDBModule } from './dynamodb/dynamodb.module';
+import { SudokuModule } from './sudoku/sudoku.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DynamoDBModule } from './dynamodb/dynamodb.module';
     InvitesModule,
     MembersModule,
     SessionsModule,
+    SudokuModule,
     DynamoDBModule.forRoot({
       // For testing
       // docker run -p 8000:8000 -it --rm instructure/dynamo-local-admin

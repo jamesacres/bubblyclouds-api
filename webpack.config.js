@@ -10,7 +10,11 @@ module.exports = function (options, webpack) {
   return {
     ...options,
     entry: ['./src/lambda.ts'],
-    externals: ['@aws-sdk/client-dynamodb', '@aws-sdk/lib-dynamodb'],
+    externals: [
+      '@aws-sdk/client-dynamodb',
+      '@aws-sdk/lib-dynamodb',
+      './wasm/qqwing/main.js',
+    ],
     output: {
       ...options.output,
       libraryTarget: 'commonjs2',
