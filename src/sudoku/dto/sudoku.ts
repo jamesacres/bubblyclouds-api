@@ -5,6 +5,7 @@ export interface Sudoku {
   difficulty: Difficulty;
   initial: string;
   final: string;
+  expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

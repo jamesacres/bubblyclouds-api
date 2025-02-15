@@ -24,6 +24,7 @@ export class SessionRepository {
         sessionId,
         { ...payload, sessionId, userId },
         { id: userId, type: Model.USER },
+        payload.expiresAt,
       ),
     );
   }

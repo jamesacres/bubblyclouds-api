@@ -6,6 +6,7 @@ export class SudokuEntity implements Sudoku {
   final: string;
   sudokuId: string;
   initial: string;
+  expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 
@@ -14,6 +15,7 @@ export class SudokuEntity implements Sudoku {
     difficulty,
     initial,
     final,
+    expiresAt,
     createdAt,
     updatedAt,
   }: Sudoku) {
@@ -21,6 +23,7 @@ export class SudokuEntity implements Sudoku {
     this.final = final;
     this.sudokuId = sudokuId;
     this.initial = initial;
+    this.expiresAt = expiresAt;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }

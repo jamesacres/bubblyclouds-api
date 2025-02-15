@@ -36,10 +36,11 @@ export class InviteDto implements Invite {
   @IsNotEmpty()
   createdBy: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   // DatePipe transforms string to date
   @IsDate()
-  expiresAt: Date;
+  expiresAt?: Date;
 
   @ApiProperty()
   @IsDate()

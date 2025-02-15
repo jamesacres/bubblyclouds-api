@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class SudokuDto {
   @ApiProperty()
@@ -21,6 +21,12 @@ export class SudokuDto {
   @IsString()
   @IsNotEmpty()
   final: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  // DatePipe transforms string to date
+  @IsDate()
+  expiresAt?: Date;
 
   @ApiProperty()
   @IsDate()

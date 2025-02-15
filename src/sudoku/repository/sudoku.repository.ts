@@ -24,11 +24,14 @@ export class SudokuRepository {
     payload: Omit<Sudoku, 'sudokuId' | 'createdAt' | 'updatedAt'>,
   ): Promise<SudokuEntity> {
     const sudokuId = this.sudokuOfTheDayId(payload.difficulty);
+    const expiresAt = new Date();
+    expiresAt.setUTCFullYear(expiresAt.getUTCFullYear() + 1);
     return new SudokuEntity(
       await this.adapter.upsert(
         sudokuId,
         { ...payload, sudokuId },
         { id: 'oftheday', type: Model.SUDOKU },
+        expiresAt,
       ),
     );
   }

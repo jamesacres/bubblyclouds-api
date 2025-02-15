@@ -7,7 +7,7 @@ export class InviteEntity implements Invite {
   sessionId?: string;
   redirectUri?: string;
   createdBy: string;
-  expiresAt: Date;
+  expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 

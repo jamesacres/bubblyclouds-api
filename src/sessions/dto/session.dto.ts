@@ -1,5 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsObject, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsDate,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class SessionDto {
   @ApiProperty()
@@ -16,6 +22,12 @@ export class SessionDto {
   @IsObject()
   @IsNotEmpty()
   state: object;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  // DatePipe transforms string to date
+  @IsDate()
+  expiresAt?: Date;
 
   @ApiProperty()
   @IsDate()
