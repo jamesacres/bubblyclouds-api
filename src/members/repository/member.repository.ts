@@ -36,7 +36,12 @@ export class MemberRepository {
       },
       { type: Model.MEMBER },
     );
-    return results.map((result) => new MemberEntity(result));
+    return (
+      results
+        .map((result) => new MemberEntity(result))
+        // Oldest members first for party
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    );
   }
 
   async findAllForUser(
@@ -49,7 +54,12 @@ export class MemberRepository {
       type: resourceType,
       idPrefix: resourceIdPrefix,
     });
-    return results.map((result) => new MemberEntity(result));
+    return (
+      results
+        .map((result) => new MemberEntity(result))
+        // Newest parties first for user
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    );
   }
 
   async findForUser(

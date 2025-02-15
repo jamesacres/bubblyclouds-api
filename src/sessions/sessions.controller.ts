@@ -7,7 +7,6 @@ import {
   Request,
   BadRequestException,
   Query,
-  NotFoundException,
 } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { UpdateSessionDto } from './dto/update-session.dto';
