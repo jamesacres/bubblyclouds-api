@@ -24,6 +24,7 @@ export class SessionRepository {
         sessionId,
         { ...payload, sessionId, userId },
         { id: userId, type: Model.USER },
+        payload.expiresAt,
       ),
     );
   }
@@ -49,6 +50,11 @@ export class SessionRepository {
       },
       { type: Model.SESSION, idPrefix: app },
     );
-    return results.map((result) => new SessionEntity(result));
+    return (
+      results
+        .map((result) => new SessionEntity(result))
+        // Newest sessions first for user
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    );
   }
 }

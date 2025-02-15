@@ -54,4 +54,24 @@ export class PartiesService {
 
     return parties;
   }
+
+  async findForUser(
+    userId: string,
+    app: App,
+    partyId: string,
+  ): Promise<PartyEntity | undefined> {
+    // Confirm user is a member of the party
+    const member = await this.memberRepository.findForUser(
+      userId,
+      Model.PARTY,
+      partyId,
+    );
+    if (member) {
+      // Confirm the party exists for this app
+      const party = await this.partyRepository.find(partyId);
+      if (party && party.appId === app) {
+        return party;
+      }
+    }
+  }
 }

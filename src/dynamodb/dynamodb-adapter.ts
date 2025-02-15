@@ -17,6 +17,7 @@ import {
   GetCommandInput,
   QueryCommand,
   QueryCommandInput,
+  QueryCommandOutput,
   UpdateCommand,
   UpdateCommandInput,
 } from '@aws-sdk/lib-dynamodb';
@@ -26,6 +27,7 @@ import { Owner } from '@/types/interfaces/owner';
 import { Model } from '@/types/enums/model';
 
 const MAX_RETRIES = 5;
+const MAX_PAGES = 10;
 
 interface Result<T extends BaseModel> {
   payload: Omit<T, 'expiresAt' | 'createdAt' | 'updatedAt'>;
@@ -56,6 +58,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
     owner: Owner,
     expiresAt?: Date,
   ): Promise<T & { expiresAt?: Date; createdAt: Date; updatedAt: Date }> {
+    console.info('upsert', id, owner, expiresAt);
     const params: UpdateCommandInput = {
       TableName: this.tableName,
       Key: {
@@ -95,6 +98,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
   ): Promise<
     (T & { expiresAt?: Date; createdAt: Date; updatedAt: Date }) | undefined
   > {
+    console.info('findByIdAndOwner', id, owner);
     const params: GetCommandInput = {
       TableName: this.tableName,
       Key: {
@@ -134,7 +138,8 @@ export class DynamoDBAdapter<T extends BaseModel> {
     id: string,
     owner?: { type: Model; idPrefix?: string },
   ): Promise<(T & { expiresAt?: Date; createdAt: Date; updatedAt: Date })[]> {
-    const params: QueryCommandInput = {
+    console.info('findAllByModelId', id, owner);
+    return this.getResults({
       TableName: this.tableName,
       KeyConditionExpression: `modelId = :modelId${owner ? ` and begins_with(#owner, :ownerPrefix)` : ''}`,
       ...(owner ? { ExpressionAttributeNames: { '#owner': 'owner' } } : {}),
@@ -147,44 +152,15 @@ export class DynamoDBAdapter<T extends BaseModel> {
           : {}),
       },
       ProjectionExpression: 'payload, expiresAt, createdAt, updatedAt',
-    };
-    const command = new QueryCommand(params);
-
-    const getResults = async () => {
-      const commandResult = await this.dynamoDBDocumentClient.send(command);
-      const result = commandResult?.Items;
-      if (!result?.length) {
-        throw Error('not found');
-      }
-      return result;
-    };
-
-    const results = (await backOff(getResults, {
-      jitter: 'full',
-      numOfAttempts: MAX_RETRIES,
-    }).catch((e) => {
-      console.warn(e);
-      return [];
-    })) as Result<T>[];
-
-    // TODO check LastEvaluatedKey and request next page
-    // TODO test with page size https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.Pagination.html
-
-    // DynamoDB can take upto 48 hours to drop expired items, so a check is required
-    results.filter((result) => {
-      const isExpired =
-        !result || (result.expiresAt && Date.now() > result.expiresAt * 1000);
-      return !isExpired;
     });
-
-    return results.map((result) => resultToRecord(result));
   }
 
   async findAllByOwner(
     owner: Owner,
     type?: { type: Model; idPrefix?: string },
   ): Promise<(T & { expiresAt?: Date; createdAt: Date; updatedAt: Date })[]> {
-    const params: QueryCommandInput = {
+    console.info('findAllByOwner', owner, type);
+    return this.getResults({
       TableName: this.tableName,
       IndexName: 'ownerIndex',
       KeyConditionExpression: `#owner = :owner${type ? ` and begins_with(modelId, :typePrefix)` : ''}`,
@@ -198,40 +174,11 @@ export class DynamoDBAdapter<T extends BaseModel> {
           : {}),
       },
       ProjectionExpression: 'payload, expiresAt, createdAt, updatedAt',
-    };
-    const command = new QueryCommand(params);
-
-    const getResults = async () => {
-      const commandResult = await this.dynamoDBDocumentClient.send(command);
-      const result = commandResult?.Items;
-      if (!result?.length) {
-        throw Error('not found');
-      }
-      return result;
-    };
-
-    const results = (await backOff(getResults, {
-      jitter: 'full',
-      numOfAttempts: MAX_RETRIES,
-    }).catch((e) => {
-      console.warn(e);
-      return [];
-    })) as Result<T>[];
-
-    // TODO check LastEvaluatedKey and request next page
-    // TODO test with page size https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.Pagination.html
-
-    // DynamoDB can take upto 48 hours to drop expired items, so a check is required
-    results.filter((result) => {
-      const isExpired =
-        !result || (result.expiresAt && Date.now() > result.expiresAt * 1000);
-      return !isExpired;
     });
-
-    return results.map((result) => resultToRecord(result));
   }
 
   async destroy(id: string, owner: Owner): Promise<void> {
+    console.info('destroy', id, owner);
     const params: DeleteCommandInput = {
       TableName: this.tableName,
       Key: {
@@ -242,5 +189,59 @@ export class DynamoDBAdapter<T extends BaseModel> {
     const command = new DeleteCommand(params);
 
     await this.dynamoDBDocumentClient.send(command);
+  }
+
+  private async getResults(params: QueryCommandInput) {
+    const getPage = async (
+      ExclusiveStartKey?: QueryCommandOutput['LastEvaluatedKey'],
+    ) => {
+      const command = new QueryCommand({
+        ...params,
+        ExclusiveStartKey,
+      });
+
+      const getResult = async () => {
+        const commandResult = await this.dynamoDBDocumentClient.send(command);
+        const items = commandResult?.Items as Result<T>[];
+        const LastEvaluatedKey = commandResult.LastEvaluatedKey;
+        if (!items?.length) {
+          throw Error('not found');
+        }
+        return { items, LastEvaluatedKey };
+      };
+
+      return backOff(getResult, {
+        jitter: 'full',
+        numOfAttempts: MAX_RETRIES,
+      }).catch((e) => {
+        console.warn(e);
+        return { items: [], LastEvaluatedKey: undefined };
+      });
+    };
+
+    const results = [];
+    let ExclusiveStartKey: QueryCommandOutput['LastEvaluatedKey'];
+    let n = 1;
+    while (n <= MAX_PAGES) {
+      if (ExclusiveStartKey) {
+        console.info('Fetching page', n);
+      }
+      const page = await getPage(ExclusiveStartKey);
+      ExclusiveStartKey = page.LastEvaluatedKey;
+      results.push(...page.items);
+      if (!ExclusiveStartKey) {
+        break;
+      }
+      n = n + 1;
+    }
+
+    // DynamoDB can take upto 48 hours to drop expired items, so a check is required
+    return results
+      .filter((result) => {
+        const isExpired =
+          !result || (result.expiresAt && Date.now() > result.expiresAt * 1000);
+        return !isExpired;
+      })
+      .map((result) => resultToRecord(result));
   }
 }
