@@ -51,4 +51,17 @@ export class MemberRepository {
     });
     return results.map((result) => new MemberEntity(result));
   }
+
+  async findForUser(
+    userId: string,
+    resourceType: Model,
+    resourceId: string,
+  ): Promise<MemberEntity | undefined> {
+    const memberId = `${Model.USER}-${userId}`;
+    const result = await this.adapter.findByIdAndOwner(memberId, {
+      type: resourceType,
+      id: resourceId,
+    });
+    return result ? new MemberEntity(result) : undefined;
+  }
 }
