@@ -8,6 +8,7 @@
   "scripts": {
     "build:nest": "nest build",
     "build:lambda": "nest build --webpack --webpackPath webpack.config.js",
+    "dynamodb:start": "docker run -p 8000:8000 -it --rm instructure/dynamo-local-admin",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -25,6 +26,7 @@
     "@aws-sdk/lib-dynamodb": "^3.535.0",
     "@codegenie/serverless-express": "^4.14.0",
     "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/platform-express": "^10.0.0",

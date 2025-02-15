@@ -9,9 +9,11 @@ import { MembersModule } from './members/members.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { DynamoDBModule } from './dynamodb/dynamodb.module';
 import { SudokuModule } from './sudoku/sudoku.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ cache: true }),
     JwtModule,
     PartiesModule,
     InvitesModule,
