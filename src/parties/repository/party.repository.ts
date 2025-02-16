@@ -4,6 +4,7 @@ import { Party } from '../dto/party';
 import { DynamoDBAdapterFactory } from '@/dynamodb/dynamodb-adapter.factory';
 import { PartyEntity } from '../entities/party.entity';
 import { Model } from '@/types/enums/model';
+import { App } from '@/types/enums/app.enum';
 
 @Injectable()
 export class PartyRepository {
@@ -46,5 +47,24 @@ export class PartyRepository {
     if (result) {
       return new PartyEntity(result);
     }
+  }
+
+  async findAllOwnedByUser(
+    createdBy: string,
+    app?: App,
+  ): Promise<PartyEntity[]> {
+    const results = await this.adapter.findAllByOwner(
+      {
+        id: createdBy,
+        type: Model.USER,
+      },
+      { type: Model.PARTY, idPrefix: app },
+    );
+    return (
+      results
+        .map((result) => new PartyEntity(result))
+        // Newest parties first for user
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    );
   }
 }

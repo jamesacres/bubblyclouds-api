@@ -46,14 +46,10 @@ export class MemberRepository {
 
   async findAllForUser(
     userId: string,
-    resourceType: Model,
-    resourceIdPrefix: string,
+    resource?: { type: Model; idPrefix?: string },
   ): Promise<MemberEntity[]> {
     const memberId = `${Model.USER}-${userId}`;
-    const results = await this.adapter.findAllByModelId(memberId, {
-      type: resourceType,
-      idPrefix: resourceIdPrefix,
-    });
+    const results = await this.adapter.findAllByModelId(memberId, resource);
     return (
       results
         .map((result) => new MemberEntity(result))

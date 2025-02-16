@@ -58,7 +58,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
     owner: Owner,
     expiresAt?: Date,
   ): Promise<T & { expiresAt?: Date; createdAt: Date; updatedAt: Date }> {
-    console.info('upsert', id, owner, expiresAt);
+    console.info('upsert', this.modelName, id, owner, expiresAt);
     const params: UpdateCommandInput = {
       TableName: this.tableName,
       Key: {
@@ -98,7 +98,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
   ): Promise<
     (T & { expiresAt?: Date; createdAt: Date; updatedAt: Date }) | undefined
   > {
-    console.info('findByIdAndOwner', id, owner);
+    console.info('findByIdAndOwner', this.modelName, id, owner);
     const params: GetCommandInput = {
       TableName: this.tableName,
       Key: {
@@ -138,7 +138,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
     id: string,
     owner?: { type: Model; idPrefix?: string },
   ): Promise<(T & { expiresAt?: Date; createdAt: Date; updatedAt: Date })[]> {
-    console.info('findAllByModelId', id, owner);
+    console.info('findAllByModelId', this.modelName, id, owner);
     return this.getResults({
       TableName: this.tableName,
       KeyConditionExpression: `modelId = :modelId${owner ? ` and begins_with(#owner, :ownerPrefix)` : ''}`,
@@ -159,7 +159,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
     owner: Owner,
     type?: { type: Model; idPrefix?: string },
   ): Promise<(T & { expiresAt?: Date; createdAt: Date; updatedAt: Date })[]> {
-    console.info('findAllByOwner', owner, type);
+    console.info('findAllByOwner', this.modelName, owner, type);
     return this.getResults({
       TableName: this.tableName,
       IndexName: 'ownerIndex',
@@ -178,7 +178,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
   }
 
   async destroy(id: string, owner: Owner): Promise<void> {
-    console.info('destroy', id, owner);
+    console.info('destroy', this.modelName, id, owner);
     const params: DeleteCommandInput = {
       TableName: this.tableName,
       Key: {

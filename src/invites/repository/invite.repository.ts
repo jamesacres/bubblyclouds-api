@@ -30,8 +30,26 @@ export class InviteRepository {
 
   async find(inviteId: string): Promise<InviteEntity | undefined> {
     const payload = await this.adapter.findAllByModelId(inviteId);
+    console.info(payload);
     if (payload.length === 1) {
       return new InviteEntity(payload[0]);
     }
+  }
+
+  async findAllInvitesForResource(resourceId: string): Promise<InviteEntity[]> {
+    const [ownerType, ownerId] = splitModelId(resourceId);
+    const results = await this.adapter.findAllByOwner(
+      {
+        id: ownerId,
+        type: ownerType as Model,
+      },
+      { type: Model.INVITE },
+    );
+    return (
+      results
+        .map((result) => new InviteEntity(result))
+        // Oldest invites first for resource
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    );
   }
 }

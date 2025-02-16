@@ -42,7 +42,7 @@ export class SessionRepository {
     }
   }
 
-  async findAllForUser(createdBy: string, app: App): Promise<SessionEntity[]> {
+  async findAllForUser(createdBy: string, app?: App): Promise<SessionEntity[]> {
     const results = await this.adapter.findAllByOwner(
       {
         id: createdBy,
