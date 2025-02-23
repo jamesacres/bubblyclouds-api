@@ -34,4 +34,30 @@ export class InviteRepository {
       return new InviteEntity(payload[0]);
     }
   }
+
+  async findAllInvitesForResource(resourceId: string): Promise<InviteEntity[]> {
+    const [ownerType, ownerId] = splitModelId(resourceId);
+    const results = await this.adapter.findAllByOwner(
+      {
+        id: ownerId,
+        type: ownerType as Model,
+      },
+      { type: Model.INVITE },
+    );
+    return (
+      results
+        .map((result) => new InviteEntity(result))
+        // Oldest invites first for resource
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    );
+  }
+
+  async batchDestroy(items: InviteEntity[]) {
+    return this.adapter.batchDestroy(
+      items.map(({ inviteId, resourceId }) => {
+        const [ownerType, ownerId] = splitModelId(resourceId);
+        return { id: inviteId, owner: { id: ownerId, type: ownerType } };
+      }),
+    );
+  }
 }

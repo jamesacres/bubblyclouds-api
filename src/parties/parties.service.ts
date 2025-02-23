@@ -35,11 +35,10 @@ export class PartiesService {
   }
 
   async findAllForUser(userId: string, app: App): Promise<PartyEntity[]> {
-    const members = await this.memberRepository.findAllForUser(
-      userId,
-      Model.PARTY,
-      app,
-    );
+    const members = await this.memberRepository.findAllForUser(userId, {
+      type: Model.PARTY,
+      idPrefix: app,
+    });
     const partyIds = members.map((member) =>
       member.resourceId.replace(`${Model.PARTY}-`, ''),
     );

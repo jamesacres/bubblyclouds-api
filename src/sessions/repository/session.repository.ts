@@ -42,7 +42,7 @@ export class SessionRepository {
     }
   }
 
-  async findAllForUser(createdBy: string, app: App): Promise<SessionEntity[]> {
+  async findAllForUser(createdBy: string, app?: App): Promise<SessionEntity[]> {
     const results = await this.adapter.findAllByOwner(
       {
         id: createdBy,
@@ -55,6 +55,14 @@ export class SessionRepository {
         .map((result) => new SessionEntity(result))
         // Newest sessions first for user
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    );
+  }
+
+  async batchDestroy(items: SessionEntity[]) {
+    return this.adapter.batchDestroy(
+      items.map(({ sessionId, userId }) => {
+        return { id: sessionId, owner: { id: userId, type: Model.USER } };
+      }),
     );
   }
 }

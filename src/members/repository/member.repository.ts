@@ -46,14 +46,10 @@ export class MemberRepository {
 
   async findAllForUser(
     userId: string,
-    resourceType: Model,
-    resourceIdPrefix: string,
+    resource?: { type: Model; idPrefix?: string },
   ): Promise<MemberEntity[]> {
     const memberId = `${Model.USER}-${userId}`;
-    const results = await this.adapter.findAllByModelId(memberId, {
-      type: resourceType,
-      idPrefix: resourceIdPrefix,
-    });
+    const results = await this.adapter.findAllByModelId(memberId, resource);
     return (
       results
         .map((result) => new MemberEntity(result))
@@ -73,5 +69,15 @@ export class MemberRepository {
       id: resourceId,
     });
     return result ? new MemberEntity(result) : undefined;
+  }
+
+  async batchDestroy(items: MemberEntity[]) {
+    return this.adapter.batchDestroy(
+      items.map(({ userId, resourceId }) => {
+        const memberId = `${Model.USER}-${userId}`;
+        const [ownerType, ownerId] = splitModelId(resourceId);
+        return { id: memberId, owner: { id: ownerId, type: ownerType } };
+      }),
+    );
   }
 }

@@ -10,11 +10,13 @@ import { SessionsModule } from './sessions/sessions.module';
 import { DynamoDBModule } from './dynamodb/dynamodb.module';
 import { SudokuModule } from './sudoku/sudoku.module';
 import { ConfigModule } from '@nestjs/config';
+import { AccountModule } from './account/account.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ cache: true }),
     JwtModule,
+    AccountModule,
     PartiesModule,
     InvitesModule,
     MembersModule,
