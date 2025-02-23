@@ -36,28 +36,40 @@ export class AccountService {
       );
     }
     console.info('data to delete for user', userId);
-    console.info(
-      'delete my sessions',
-      mySessions.map((session) => session.sessionId),
-    );
-    console.info(
-      'delete my memberships',
-      myMemberships.map((member) => `${member.userId} ${member.resourceId}`),
-    );
-    console.info(
-      'delete my parties',
-      myParties.map((party) => `${party.partyId}`),
-    );
-    console.info(
-      'delete party members',
-      partyMembers.map((member) => `${member.userId} ${member.resourceId}`),
-    );
-    console.info(
-      'delete party invites',
-      partyInvites.map((invite) => `${invite.inviteId} ${invite.resourceId}`),
-    );
-
-    // TODO Batch Delete
-    // TODO client will call delete on auth and logout?
+    if (mySessions.length) {
+      console.info(
+        'delete my sessions',
+        mySessions.map((session) => session.sessionId),
+      );
+      await this.sessionRepository.batchDestroy(mySessions);
+    }
+    if (myMemberships.length) {
+      console.info(
+        'delete my memberships',
+        myMemberships.map((member) => `${member.userId} ${member.resourceId}`),
+      );
+      await this.memberRepository.batchDestroy(myMemberships);
+    }
+    if (myParties.length) {
+      console.info(
+        'delete my parties',
+        myParties.map((party) => `${party.partyId}`),
+      );
+      await this.partyRepository.batchDestroy(myParties);
+    }
+    if (partyMembers.length) {
+      console.info(
+        'delete party members',
+        partyMembers.map((member) => `${member.userId} ${member.resourceId}`),
+      );
+      await this.memberRepository.batchDestroy(partyMembers);
+    }
+    if (partyInvites.length) {
+      console.info(
+        'delete party invites',
+        partyInvites.map((invite) => `${invite.inviteId} ${invite.resourceId}`),
+      );
+      await this.inviteRepository.batchDestroy(partyInvites);
+    }
   }
 }

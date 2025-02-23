@@ -57,4 +57,12 @@ export class SessionRepository {
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     );
   }
+
+  async batchDestroy(items: SessionEntity[]) {
+    return this.adapter.batchDestroy(
+      items.map(({ sessionId, userId }) => {
+        return { id: sessionId, owner: { id: userId, type: Model.USER } };
+      }),
+    );
+  }
 }

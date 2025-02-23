@@ -20,6 +20,8 @@ import {
   QueryCommandOutput,
   UpdateCommand,
   UpdateCommandInput,
+  BatchWriteCommand,
+  BatchWriteCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 import { backOff } from 'exponential-backoff';
 import { BaseModel } from '@/types/interfaces/baseModel';
@@ -189,6 +191,79 @@ export class DynamoDBAdapter<T extends BaseModel> {
     const command = new DeleteCommand(params);
 
     await this.dynamoDBDocumentClient.send(command);
+  }
+
+  private async doBatchWrite(params: BatchWriteCommandInput, attempt = 0) {
+    console.info(
+      `doBatchWrite attempt ${attempt} params`,
+      JSON.stringify(params),
+    );
+    if (attempt > MAX_RETRIES) {
+      throw Error(`doBatchWrite reached max retries ${MAX_RETRIES}`);
+    }
+    const command = new BatchWriteCommand(params);
+    const result = await backOff(
+      () => this.dynamoDBDocumentClient.send(command),
+      {
+        jitter: 'full',
+        numOfAttempts: MAX_RETRIES,
+      },
+    ).catch((e) => {
+      console.warn(e);
+      // Treat all as unprocessed
+      return { UnprocessedItems: params.RequestItems };
+    });
+    if (
+      result.UnprocessedItems &&
+      Object.keys(result.UnprocessedItems).length
+    ) {
+      // Try to delete any unprocessed again
+      await this.doBatchWrite(
+        { RequestItems: result.UnprocessedItems },
+        attempt + 1,
+      );
+    }
+  }
+
+  async batchDestroy(items: { id: string; owner: Owner }[]): Promise<void> {
+    console.info(
+      'batchDestroy',
+      this.modelName,
+      items.map(
+        (item) => `${item.id} owned by ${item.owner.type} ${item.owner.id}`,
+      ),
+    );
+    // Batches of 25
+    const batchSize = 25;
+    const batches = [...Array(Math.ceil(items.length / batchSize))].map(
+      (_, i) => items.slice(i * batchSize, (i + 1) * batchSize),
+    );
+    const errors: Error[] = [];
+    for (const batch of batches) {
+      try {
+        const params: BatchWriteCommandInput = {
+          RequestItems: {
+            [this.tableName]: batch.map(({ id, owner }) => {
+              return {
+                DeleteRequest: {
+                  Key: {
+                    modelId: this.modelName + '-' + id,
+                    owner: `${owner.type}-${owner.id}`,
+                  },
+                },
+              };
+            }),
+          },
+        };
+        await this.doBatchWrite(params);
+      } catch (e) {
+        console.error(e);
+        errors.push(e);
+      }
+    }
+    if (errors.length) {
+      throw Error(`batchDestroy had ${errors.length} failed batches`);
+    }
   }
 
   private async getResults(params: QueryCommandInput) {

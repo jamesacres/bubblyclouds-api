@@ -67,4 +67,12 @@ export class PartyRepository {
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     );
   }
+
+  async batchDestroy(items: PartyEntity[]) {
+    return this.adapter.batchDestroy(
+      items.map(({ partyId, createdBy }) => {
+        return { id: partyId, owner: { id: createdBy, type: Model.USER } };
+      }),
+    );
+  }
 }

@@ -52,4 +52,13 @@ export class InviteRepository {
         .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
     );
   }
+
+  async batchDestroy(items: InviteEntity[]) {
+    return this.adapter.batchDestroy(
+      items.map(({ inviteId, resourceId }) => {
+        const [ownerType, ownerId] = splitModelId(resourceId);
+        return { id: inviteId, owner: { id: ownerId, type: ownerType } };
+      }),
+    );
+  }
 }

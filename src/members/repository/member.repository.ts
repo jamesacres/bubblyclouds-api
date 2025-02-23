@@ -70,4 +70,14 @@ export class MemberRepository {
     });
     return result ? new MemberEntity(result) : undefined;
   }
+
+  async batchDestroy(items: MemberEntity[]) {
+    return this.adapter.batchDestroy(
+      items.map(({ userId, resourceId }) => {
+        const memberId = `${Model.USER}-${userId}`;
+        const [ownerType, ownerId] = splitModelId(resourceId);
+        return { id: memberId, owner: { id: ownerId, type: ownerType } };
+      }),
+    );
+  }
 }
