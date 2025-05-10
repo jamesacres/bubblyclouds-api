@@ -14,7 +14,7 @@ export class AccountService {
     private inviteRepository: InviteRepository,
   ) {}
 
-  async delete(userId: string): Promise<void> {
+  async delete(userId: string, authToken: string): Promise<void> {
     console.info('find data to delete for user', userId);
     const mySessions = await this.sessionRepository.findAllForUser(userId);
     const myMemberships = await this.memberRepository.findAllForUser(userId);
@@ -70,6 +70,32 @@ export class AccountService {
         partyInvites.map((invite) => `${invite.inviteId} ${invite.resourceId}`),
       );
       await this.inviteRepository.batchDestroy(partyInvites);
+    }
+
+    // Call the auth service to delete the user account
+    try {
+      console.info('Deleting auth user', userId);
+      const response = await fetch(
+        `https://auth.bubblyclouds.com/api/account/${encodeURIComponent(userId)}/delete`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        console.error('Failed to delete auth user', {
+          userId,
+          statusCode: response.status,
+        });
+      } else {
+        console.info('Successfully deleted auth user', userId);
+      }
+    } catch (error) {
+      console.error('Error deleting auth user', error, userId);
     }
   }
 }

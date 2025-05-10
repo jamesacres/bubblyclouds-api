@@ -16,6 +16,6 @@ export class AccountController {
   @Delete()
   @HttpCode(constants.HTTP_STATUS_NO_CONTENT)
   async delete(@Request() req: RequestWithUser): Promise<void> {
-    await this.accountService.delete(req.user.sub);
+    await this.accountService.delete(req.user.sub, req.authToken);
   }
 }
