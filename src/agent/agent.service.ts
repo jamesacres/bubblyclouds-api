@@ -33,7 +33,22 @@ export class AgentService {
       
       You have access to search, cost tool and code interpreter.`,
       agentName: 'cost_agent',
-      actionGroups: [],
+      actionGroups: [
+        {
+          actionGroupName: 'actionGroupName',
+          actionGroupExecutor: { customControl: 'RETURN_CONTROL' },
+          apiSchema: undefined,
+          functionSchema: {
+            functions: [
+              {
+                name: 'functionName',
+                parameters: { test: { type: 'string', required: true } },
+                requireConfirmation: 'DISABLED',
+              },
+            ],
+          },
+        },
+      ],
       inputText: invokeAgentDto.inputText,
     };
     const command = new InvokeInlineAgentCommand(input);
