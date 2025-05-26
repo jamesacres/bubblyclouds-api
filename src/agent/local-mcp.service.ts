@@ -97,8 +97,8 @@ export class LocalMcpService {
             },
           },
           {
-            name: 'secret_number',
-            description: 'Find the secret number',
+            name: 'magic_number',
+            description: 'Find the magic number',
             inputSchema: {
               type: 'object',
               properties: {},
@@ -140,8 +140,8 @@ export class LocalMcpService {
             };
           }
 
-          case 'secret_number': {
-            const result = this.secretNumber();
+          case 'magic_number': {
+            const result = this.magicNumber();
             return {
               content: [
                 {
@@ -192,8 +192,8 @@ export class LocalMcpService {
     return a + b;
   }
 
-  private secretNumber() {
-    console.info('secretNumber');
+  private magicNumber() {
+    console.info('magicNumber');
     return 9001;
   }
 

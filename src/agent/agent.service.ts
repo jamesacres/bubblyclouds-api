@@ -82,7 +82,7 @@ export class AgentService {
 
           instruction: `You are a friendly assistant that is responsible for resolving user queries.
           Wherever possible, take advantage of the tools available to you to help users.
-          You have access to bubbly clouds tools to find a secret number, calculate the sum of two numbers, and fetch user data and should make use of these to answer.`,
+          You have access to bubbly clouds tools to find a magic number, calculate the sum of two numbers, and fetch user data and should make use of these to answer.`,
 
           agentName: 'bubblyclouds_agent',
           actionGroups,
@@ -161,6 +161,7 @@ export class AgentService {
                 console.error(e);
                 return 'Error';
               });
+              console.info('toolResponseBody', toolResponseBody);
               result.returnControl.results.push({
                 functionResult: {
                   actionGroup:
@@ -219,7 +220,14 @@ export class AgentService {
             user,
           },
         });
-        return `${result.content}`;
+        console.info('handleReturnControl result', result);
+        const content: { type: string; text: string }[] = result.content as any;
+        const combinedResult = content.reduce(
+          (result, part) => `${result}${part.text}`,
+          '',
+        );
+        console.info('handleReturnControl combinedResult', combinedResult);
+        return combinedResult;
       }
     }
     throw Error('handleReturnControl unhandled');
