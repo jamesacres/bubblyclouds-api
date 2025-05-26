@@ -6,4 +6,9 @@ export class InvokeAgentDto {
   @IsString()
   @IsNotEmpty()
   inputText: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  sessionId: string;
 }
