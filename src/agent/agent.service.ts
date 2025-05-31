@@ -47,7 +47,6 @@ export class AgentService {
 
   constructor() {
     this.bedrockClient = new BedrockAgentRuntimeClient({
-      // region: 'eu-west-2',
       // Cross region inference
       // https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html
       // https://aws.amazon.com/blogs/machine-learning/enable-amazon-bedrock-cross-region-inference-in-multi-account-environments/
@@ -62,7 +61,7 @@ export class AgentService {
     try {
       console.info(invokeAgentDto);
 
-      const sessionId = `${createHash('sha256').update(user.sub).digest('hex')}-${invokeAgentDto.sessionId}`;
+      const sessionId = `${createHash('sha256').update(`${user.sub}-${invokeAgentDto.sessionId}`).digest('hex')}`;
 
       const actionGroups = this.convertMcpToolsToBedrockSchema(
         await this.getMcpClients(),
