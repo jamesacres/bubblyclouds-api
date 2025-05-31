@@ -11,6 +11,7 @@ import { DynamoDBModule } from './dynamodb/dynamodb.module';
 import { SudokuModule } from './sudoku/sudoku.module';
 import { ConfigModule } from '@nestjs/config';
 import { AccountModule } from './account/account.module';
+import { AgentModule } from './agent/agent.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AccountModule } from './account/account.module';
       },
       tableName: process.env.API_TABLE || 'Api',
     }),
+    AgentModule,
   ],
   controllers: [AppController],
   providers: [
