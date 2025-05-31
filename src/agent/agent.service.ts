@@ -66,7 +66,6 @@ export class AgentService {
       const actionGroups = this.convertMcpToolsToBedrockSchema(
         await this.getMcpClients(),
       );
-      console.info(JSON.stringify(actionGroups));
 
       let lastResult: AgentResponse | undefined;
       while (!lastResult || lastResult.returnControl) {
