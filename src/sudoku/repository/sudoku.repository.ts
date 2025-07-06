@@ -25,7 +25,7 @@ export class SudokuRepository {
   ): Promise<SudokuEntity> {
     const sudokuId = this.sudokuOfTheDayId(payload.difficulty);
     const expiresAt = new Date();
-    expiresAt.setUTCFullYear(expiresAt.getUTCFullYear() + 1);
+    expiresAt.setDate(expiresAt.getDate() + 2);
     return new SudokuEntity(
       await this.adapter.upsert(
         sudokuId,
