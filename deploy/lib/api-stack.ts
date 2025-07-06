@@ -1,4 +1,4 @@
-import { Duration, Fn, Stack, StackProps } from 'aws-cdk-lib';
+import { Duration, Fn, SecretValue, Stack, StackProps } from 'aws-cdk-lib';
 import {
   CfnApplication,
   CfnConfigurationProfile,
@@ -14,6 +14,15 @@ import {
 } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { AttributeType, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
+import {
+  Rule,
+  Schedule,
+  ApiDestination,
+  Connection,
+  Authorization,
+  HttpMethod,
+} from 'aws-cdk-lib/aws-events';
+import { ApiDestination as ApiDestinationTarget } from 'aws-cdk-lib/aws-events-targets';
 import { Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
@@ -24,12 +33,13 @@ export interface ApiStackProps extends StackProps {
   domainName: string;
   subdomain: string;
   appConfig: { applicationName: string; environmentName: string };
+  cron: { username: string; password: string };
 }
 
 export class ApiStack extends Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
-    const { certificateArn, domainName, subdomain } = props;
+    const { certificateArn, domainName, subdomain, cron } = props;
 
     const apiGateway = this.gateway();
     this.domain(apiGateway, {
@@ -53,6 +63,9 @@ export class ApiStack extends Stack {
 
     // *
     apiGateway.root.addProxy({ defaultIntegration: api.integration });
+
+    // EventBridge rules for sudoku of the day
+    this.createSudokuCronJobs(domainName, subdomain, cron);
   }
 
   private gateway() {
@@ -207,5 +220,55 @@ export class ApiStack extends Stack {
         integration: new LambdaIntegration(apiFn, { proxy: true }),
       },
     };
+  }
+
+  private createSudokuCronJobs(
+    domainName: string,
+    subdomain: string,
+    cron: ApiStackProps['cron'],
+  ) {
+    const apiUrl = `https://${subdomain}.${domainName}`;
+
+    // Create connection for API destination
+    const connection = new Connection(this, 'SudokuApiConnection', {
+      authorization: Authorization.basic(
+        cron.username,
+        SecretValue.unsafePlainText(cron.password),
+      ),
+      description: 'Connection for Sudoku API calls',
+    });
+
+    const difficulties = [
+      { difficulty: 'simple', time: '22:01' },
+      { difficulty: 'easy', time: '22:02' },
+      { difficulty: 'intermediate', time: '22:03' },
+    ];
+
+    difficulties.forEach(({ difficulty, time }) => {
+      const [hour, minute] = time.split(':');
+
+      // Create API destination
+      const destination = new ApiDestination(
+        this,
+        `SudokuApiDestination-${difficulty}`,
+        {
+          connection,
+          endpoint: `${apiUrl}/sudoku/ofTheDay?difficulty=${difficulty}&isTomorrow=true`,
+          httpMethod: HttpMethod.GET,
+          description: `API destination for ${difficulty} sudoku`,
+        },
+      );
+
+      new Rule(this, `SudokuCronJob-${difficulty}`, {
+        schedule: Schedule.cron({
+          hour,
+          minute,
+          day: '*',
+          month: '*',
+          year: '*',
+        }),
+        targets: [new ApiDestinationTarget(destination)],
+      });
+    });
   }
 }

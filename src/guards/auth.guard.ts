@@ -13,6 +13,9 @@ import { Permission } from '@/types/enums/permission.enum';
 import { RequestWithUser } from '@/types/interfaces/requestWithUser';
 import { User } from '@/types/interfaces/user';
 import { fetchPublicKey } from '@/utils/fetchPublicKey';
+import { IS_API_KEY } from '@/decorators/api-key.decorator';
+import { ConfigService } from '@nestjs/config';
+import { AppConfig } from '@/types/interfaces/appConfig';
 
 // https://docs.nestjs.com/security/authentication
 @Injectable()
@@ -20,6 +23,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
+    private configService: ConfigService<AppConfig, true>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -39,6 +43,24 @@ export class AuthGuard implements CanActivate {
     const request: RequestWithUser = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
+      // If no Bearer token see if we have a valid API Key instead
+      const isApiKey = this.reflector.getAllAndOverride<boolean>(IS_API_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
+      if (isApiKey) {
+        // See if we have an API key instead
+        const { username, password } =
+          this.extractBasicAuthFromHeader(request) || {};
+        if (username && password) {
+          const apiKeys =
+            this.configService.get<AppConfig['apiKeys']>('apiKeys');
+          if (apiKeys[username] && apiKeys[username]?.password === password) {
+            return true;
+          }
+        }
+      }
+
       throw new UnauthorizedException('Missing token');
     }
     try {
@@ -75,5 +97,29 @@ export class AuthGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+
+  private extractBasicAuthFromHeader(request: Request):
+    | {
+        username: string;
+        password: string;
+      }
+    | undefined {
+    const [type, encoded] = request.headers.authorization?.split(' ') ?? [];
+    if (type === 'Basic') {
+      try {
+        const credentials = Buffer.from(encoded, 'base64').toString();
+        const [username, password] = credentials?.split(':') ?? [];
+        if (username && password) {
+          return {
+            username,
+            password,
+          };
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+    return undefined;
   }
 }

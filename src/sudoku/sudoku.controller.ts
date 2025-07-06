@@ -4,6 +4,7 @@ import {
   Request,
   BadRequestException,
   Query,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { SudokuService } from './sudoku.service';
 import {
@@ -18,6 +19,7 @@ import { SudokuDto } from './dto/sudoku.dto';
 import { Difficulty } from '@/types/enums/difficulty.enum';
 import { validateDifficulty } from '@/utils/validateDifficulty';
 import { Sudoku } from './dto/sudoku';
+import { ApiKey } from '@/decorators/api-key.decorator';
 
 @ApiTags('sudoku')
 @ApiBearerAuth('access-token')
@@ -30,14 +32,18 @@ export class SudokuController {
     type: [SudokuDto],
   })
   @ApiQuery({ name: 'difficulty', enum: Difficulty, required: true })
+  @ApiQuery({ name: 'isTomorrow', type: Boolean, required: false })
   @Get('ofTheDay')
+  @ApiKey()
   async ofTheDay(
     @Request() req: RequestWithUser,
     @Query('difficulty') difficulty: Difficulty,
+    @Query('isTomorrow', new ParseBoolPipe({ optional: true }))
+    isTomorrow: boolean | undefined,
   ): Promise<Sudoku> {
     if (!validateDifficulty(difficulty)) {
       throw new BadRequestException('Invalid difficulty');
     }
-    return this.sudokuService.sudokuOfTheDay(difficulty);
+    return this.sudokuService.sudokuOfTheDay(difficulty, isTomorrow);
   }
 }
