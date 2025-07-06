@@ -18,6 +18,7 @@ import { SudokuDto } from './dto/sudoku.dto';
 import { Difficulty } from '@/types/enums/difficulty.enum';
 import { validateDifficulty } from '@/utils/validateDifficulty';
 import { Sudoku } from './dto/sudoku';
+import { ApiKey } from '@/decorators/api-key.decorator';
 
 @ApiTags('sudoku')
 @ApiBearerAuth('access-token')
@@ -31,6 +32,7 @@ export class SudokuController {
   })
   @ApiQuery({ name: 'difficulty', enum: Difficulty, required: true })
   @Get('ofTheDay')
+  @ApiKey()
   async ofTheDay(
     @Request() req: RequestWithUser,
     @Query('difficulty') difficulty: Difficulty,

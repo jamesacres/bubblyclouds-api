@@ -12,10 +12,11 @@ import { SudokuModule } from './sudoku/sudoku.module';
 import { ConfigModule } from '@nestjs/config';
 import { AccountModule } from './account/account.module';
 import { AgentModule } from './agent/agent.module';
+import { fetchAppConfig } from './utils/fetchAppConfig';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ cache: true }),
+    ConfigModule.forRoot({ cache: true, load: [fetchAppConfig] }),
     JwtModule,
     AccountModule,
     PartiesModule,

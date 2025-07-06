@@ -13,6 +13,8 @@ if (
     process.env.DOMAIN_NAME &&
     process.env.SUBDOMAIN &&
     process.env.APP_CONFIG_APPLICATION_NAME &&
+    process.env.CRON_API_KEY_USERNAME &&
+    process.env.CRON_API_KEY_PASSWORD &&
     ['dev', 'prod'].includes(process.env.ENV!)
   )
 ) {
@@ -31,5 +33,9 @@ new ApiStack(app, 'ApiStack', {
   appConfig: {
     applicationName: process.env.APP_CONFIG_APPLICATION_NAME,
     environmentName: `${process.env.APP_CONFIG_APPLICATION_NAME}-${process.env.ENV}`,
+  },
+  cron: {
+    username: process.env.CRON_API_KEY_USERNAME,
+    password: process.env.CRON_API_KEY_PASSWORD,
   },
 });
