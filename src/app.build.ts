@@ -7,12 +7,10 @@ import { AllExceptionsFilter } from './exceptionFilters/all-exceptions.filter';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { fetchPublicKey } from './utils/fetchPublicKey';
 import { DatePipe } from './pipes/datePipe';
-import { fetchAppConfig } from './utils/fetchAppConfig';
 
 export async function build(express: any) {
-  // Speed up cold starts by fetching our public key and app config now without blocking
+  // Speed up cold starts by fetching our public key now without blocking
   void fetchPublicKey().catch((e) => console.error(e));
-  void fetchAppConfig().catch((e) => console.error(e));
 
   const app = await NestFactory.create(AppModule, new ExpressAdapter(express));
   const { httpAdapter } = app.get(HttpAdapterHost);
