@@ -4,6 +4,7 @@ import {
   Request,
   BadRequestException,
   Query,
+  ParseBoolPipe,
 } from '@nestjs/common';
 import { SudokuService } from './sudoku.service';
 import {
@@ -31,15 +32,18 @@ export class SudokuController {
     type: [SudokuDto],
   })
   @ApiQuery({ name: 'difficulty', enum: Difficulty, required: true })
+  @ApiQuery({ name: 'isTomorrow', type: Boolean, required: false })
   @Get('ofTheDay')
   @ApiKey()
   async ofTheDay(
     @Request() req: RequestWithUser,
     @Query('difficulty') difficulty: Difficulty,
+    @Query('isTomorrow', new ParseBoolPipe({ optional: true }))
+    isTomorrow: boolean | undefined,
   ): Promise<Sudoku> {
     if (!validateDifficulty(difficulty)) {
       throw new BadRequestException('Invalid difficulty');
     }
-    return this.sudokuService.sudokuOfTheDay(difficulty);
+    return this.sudokuService.sudokuOfTheDay(difficulty, isTomorrow);
   }
 }

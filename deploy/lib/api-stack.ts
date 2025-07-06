@@ -253,7 +253,7 @@ export class ApiStack extends Stack {
         `SudokuApiDestination-${difficulty}`,
         {
           connection,
-          endpoint: `${apiUrl}/sudoku/ofTheDay?difficulty=${difficulty}`,
+          endpoint: `${apiUrl}/sudoku/ofTheDay?difficulty=${difficulty}&isTomorrow=true`,
           httpMethod: HttpMethod.GET,
           description: `API destination for ${difficulty} sudoku`,
         },

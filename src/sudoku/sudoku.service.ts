@@ -8,17 +8,26 @@ import { SudokuRepository } from './repository/sudoku.repository';
 export class SudokuService {
   constructor(private readonly sudokuRepository: SudokuRepository) {}
 
-  async sudokuOfTheDay(difficulty: Difficulty): Promise<Sudoku> {
+  async sudokuOfTheDay(
+    difficulty: Difficulty,
+    isTomorrow: boolean | undefined,
+  ): Promise<Sudoku> {
     // Look up to see if sudoku of this difficulty has already been generated today
     // If it hasn't, generate and return it
-    let sudoku = await this.sudokuRepository.findSudokuOfTheDay(difficulty);
+    let sudoku = await this.sudokuRepository.findSudokuOfTheDay(
+      difficulty,
+      isTomorrow,
+    );
     if (!sudoku) {
       const { initial, final } = await qqwing.generate(difficulty);
-      sudoku = await this.sudokuRepository.insertSudokuOfTheDay({
-        difficulty,
-        final,
-        initial,
-      });
+      sudoku = await this.sudokuRepository.insertSudokuOfTheDay(
+        {
+          difficulty,
+          final,
+          initial,
+        },
+        isTomorrow,
+      );
     }
     return sudoku;
   }
