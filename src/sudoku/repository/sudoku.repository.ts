@@ -45,7 +45,7 @@ export class SudokuRepository {
 
   async findSudokuOfTheDay(
     difficulty: Difficulty,
-    isTomorrow?: boolean,
+    isTomorrow: boolean | undefined,
   ): Promise<SudokuEntity | undefined> {
     const sudokuId = this.sudokuOfTheDayId(difficulty, isTomorrow);
     return this.adapter.findByIdAndOwner(sudokuId, {
