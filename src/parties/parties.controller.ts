@@ -71,6 +71,7 @@ export class PartiesController {
   @ApiNoContentResponse({
     description: 'Delete party.',
   })
+  @ApiQuery({ name: 'app', enum: App, required: true })
   @Delete(':partyId')
   @HttpCode(constants.HTTP_STATUS_NO_CONTENT)
   async delete(
