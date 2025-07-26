@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { PartyDto } from './dto/party.dto';
 import { App } from '@/types/enums/app.enum';
@@ -72,5 +72,19 @@ export class PartiesService {
         return party;
       }
     }
+  }
+
+  async deleteForUser(
+    userId: string,
+    app: App,
+    partyId: string,
+  ): Promise<void> {
+    const party = await this.findForUser(userId, app, partyId);
+    // Confirm the party was created by this user
+    if (party && party.createdBy === userId) {
+      await this.partyRepository.destroy(party);
+      return;
+    }
+    throw new NotFoundException('Party not found');
   }
 }

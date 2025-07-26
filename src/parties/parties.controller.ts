@@ -6,12 +6,16 @@ import {
   Query,
   Request,
   BadRequestException,
+  Delete,
+  HttpCode,
+  Param,
 } from '@nestjs/common';
 import { PartiesService } from './parties.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiQuery,
   ApiTags,
@@ -22,6 +26,7 @@ import { Permission } from '@/types/enums/permission.enum';
 import { App } from '@/types/enums/app.enum';
 import { RequestWithUser } from '@/types/interfaces/requestWithUser';
 import { validateApp } from '@/utils/validateApp';
+import { constants } from 'http2';
 
 @RequirePermissions(Permission.PARTIES_WRITE)
 @ApiTags('parties')
@@ -61,5 +66,18 @@ export class PartiesController {
       throw new BadRequestException('Invalid app');
     }
     return this.partiesService.findAllForUser(req.user.sub, app);
+  }
+
+  @ApiNoContentResponse({
+    description: 'Delete party.',
+  })
+  @Delete(':partyId')
+  @HttpCode(constants.HTTP_STATUS_NO_CONTENT)
+  async delete(
+    @Request() req: RequestWithUser,
+    @Param('partyId') partyId: string,
+    @Query('app') app: App,
+  ): Promise<void> {
+    await this.partiesService.deleteForUser(req.user.sub, app, partyId);
   }
 }

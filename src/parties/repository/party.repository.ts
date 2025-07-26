@@ -75,4 +75,11 @@ export class PartyRepository {
       }),
     );
   }
+
+  async destroy(item: PartyEntity) {
+    return this.adapter.destroy(item.partyId, {
+      id: item.createdBy,
+      type: Model.USER,
+    });
+  }
 }
