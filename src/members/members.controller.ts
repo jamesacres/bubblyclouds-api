@@ -6,6 +6,9 @@ import {
   Query,
   Request,
   BadRequestException,
+  Delete,
+  HttpCode,
+  Param,
 } from '@nestjs/common';
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
@@ -13,6 +16,7 @@ import { Permission } from '@/types/enums/permission.enum';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiQuery,
   ApiTags,
@@ -20,6 +24,7 @@ import {
 import { RequirePermissions } from '@/decorators/require-permissions.decorator';
 import { MemberDto } from './dto/member.dto';
 import { RequestWithUser } from '@/types/interfaces/requestWithUser';
+import { constants } from 'http2';
 
 @RequirePermissions(Permission.MEMBERS_WRITE)
 @ApiTags('members')
@@ -56,5 +61,19 @@ export class MembersController {
     }
     const requestedBy = req.user.sub;
     return this.membersService.findAll(resourceId, requestedBy);
+  }
+
+  @ApiNoContentResponse({
+    description: 'Delete member.',
+  })
+  @ApiQuery({ name: 'resourceId', type: 'string', required: true })
+  @Delete(':userId')
+  @HttpCode(constants.HTTP_STATUS_NO_CONTENT)
+  async delete(
+    @Request() req: RequestWithUser,
+    @Param('userId') userId: string,
+    @Query('resourceId') resourceId: string,
+  ): Promise<void> {
+    await this.membersService.deleteForUser(req.user.sub, resourceId, userId);
   }
 }

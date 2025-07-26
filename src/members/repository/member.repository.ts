@@ -80,4 +80,10 @@ export class MemberRepository {
       }),
     );
   }
+
+  async destroy(item: MemberEntity) {
+    const memberId = `${Model.USER}-${item.userId}`;
+    const [ownerType, ownerId] = splitModelId(item.resourceId);
+    return this.adapter.destroy(memberId, { id: ownerId, type: ownerType });
+  }
 }
