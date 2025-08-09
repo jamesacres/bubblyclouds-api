@@ -45,10 +45,10 @@ function selectRandomPuzzles<T>(array: T[], count: number): T[] {
 }
 
 /**
- * Parses a CSV-like row into an object with column names as keys
+ * Parses a space-delimited row into an object with column names as keys
  */
 function parseRow(row: string, headers: string[]): SeedFileRow {
-  const values = row.split('\t');
+  const values = row.split(/\s{2,}/); // Split on two or more spaces
   const result: SeedFileRow = {};
 
   headers.forEach((header, index) => {
@@ -84,8 +84,8 @@ function mapDifficulty(difficultyStr: string): SudokuCoachPuzzleDifficulty {
  */
 function mapRowToPuzzle(row: SeedFileRow): SudokuBookPuzzle {
   return {
-    initial: row['Sudoku'] || '',
-    final: row['Solution'] || '',
+    initial: row['Sudoku'].replaceAll('0', '.') || '',
+    final: row['Solution'].replaceAll('0', '.') || '',
     difficulty: {
       coach: mapDifficulty(row['Difficulty']),
       sudokuExplainer: parseFloat(row['SE']) || 0,
@@ -196,7 +196,7 @@ function readSeedFile(filePath: string): SudokuBookPuzzle[] {
   }
 
   // First line is header
-  const headers = lines[0].split('\t');
+  const headers = lines[0].split(/\s{2,}/); // Split on two or more spaces
   const dataLines = lines.slice(1);
 
   // Parse all rows and convert to puzzles
@@ -215,7 +215,7 @@ function readSeedFile(filePath: string): SudokuBookPuzzle[] {
  * Generates 50 sudoku puzzles with bell curve distribution across difficulty levels
  */
 export function generateSudokuSelection(
-  seedsDir: string = '../seeds',
+  seedsDir: string = './sudoku-seeds',
 ): SudokuBookPuzzle[] {
   const allPuzzles: SudokuBookPuzzle[] = [];
 
@@ -238,7 +238,7 @@ export function generateSudokuSelection(
 /**
  * Reads all seed files and returns all puzzles by difficulty
  */
-export function readAllSudokuSeeds(seedsDir: string = '../seeds'): {
+export function readAllSudokuSeeds(seedsDir: string = './sudoku-seeds'): {
   [key: string]: SudokuBookPuzzle[];
 } {
   const seedFiles = fs

@@ -385,19 +385,3 @@ export function scrambleSudoku(
   const scrambler = new SudokuScrambler(sudokuString, solutionString);
   return scrambler.scramble();
 }
-
-// Example usage:
-const originalSudoku =
-  '.8.......571......4.2.....16.5...8..8...7.2........3...6..83.5..3...5..47.826....';
-const originalSolution =
-  '386591427571426938492837561615342879843679215927158346164983752239715684758264193';
-
-console.log('Original puzzle:', originalSudoku);
-console.log('Original solution:', originalSolution);
-
-// Run multiple times to see different results
-for (let i = 1; i <= 3; i++) {
-  const scrambled = scrambleSudoku(originalSudoku, originalSolution);
-  console.log(`Scrambled ${i} puzzle:`, scrambled.puzzle);
-  console.log(`Scrambled ${i} solution:`, scrambled.solution);
-}

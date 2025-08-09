@@ -18,7 +18,7 @@ export class SudokuBookRepository {
     if (isNextMonth) {
       now.setMonth(now.getMonth() + 1);
     }
-    const date = now.toISOString().slice(0, 10).replaceAll('-', '');
+    const date = now.toISOString().slice(0, 7).replaceAll('-', '');
     return `ofthemonth-${date}`;
   }
 

@@ -6,6 +6,8 @@ import { SudokuRepository } from './repository/sudoku.repository';
 import { SudokuBook } from './dto/sudoku-book';
 import { SudokuBookPuzzle } from './dto/sudoku-book-puzzle';
 import { SudokuBookRepository } from './repository/sudoku-book.repository';
+import { generateSudokuSelection } from '@/utils/sudoku-seed-reader';
+import { scrambleSudoku } from '@/utils/scrambleSudoku';
 
 @Injectable()
 export class SudokuService {
@@ -41,20 +43,23 @@ export class SudokuService {
   async sudokuBookOfTheMonth(
     isNextMonth: boolean | undefined,
   ): Promise<SudokuBook> {
-    // Look up to see if sudoku of this difficulty has already been generated today
-    // If it hasn't, generate and return it
+    // Generate a book with 50 random puzzles with a bell curve difficulty distribution
     let sudokuBook =
       await this.sudokuBookRepository.findSudokuBookOfTheMonth(isNextMonth);
     if (!sudokuBook) {
-      const puzzles: SudokuBookPuzzle[] = [];
-      // TODO select random seeds from each difficulty
-      // TODO shuffle each seed
-      // https://mathwithbaddrawings.com/2017/01/04/1-2-trillion-ways-to-play-the-same-sudoku/
-      // https://www.sudopedia.org/wiki/Scramble
-      // Rotate, Mirror
-      // Swap bands, stacks
-      // Swap rows and columns within bands and stacks respectively
-      // Swap all of one number with all of another number (e.g. swap all 1s with 9s)
+      const puzzles: SudokuBookPuzzle[] = generateSudokuSelection().map(
+        (puzzle) => {
+          const { puzzle: initial, solution: final } = scrambleSudoku(
+            puzzle.initial,
+            puzzle.final,
+          );
+          return {
+            ...puzzle,
+            initial,
+            final: final!,
+          };
+        },
+      );
       sudokuBook = await this.sudokuBookRepository.insertSudokuBookOfTheMonth(
         {
           puzzles,
