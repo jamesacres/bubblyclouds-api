@@ -1,28 +1,22 @@
-import { SudokuQQWingDifficulty } from '@/types/enums/difficulty.enum';
-import { Sudoku } from '../dto/sudoku';
+import { SudokuBook } from '../dto/sudoku-book';
+import { SudokuBookPuzzle } from '../dto/sudoku-book-puzzle';
 
-export class SudokuEntity implements Sudoku {
-  difficulty: SudokuQQWingDifficulty;
-  final: string;
-  sudokuId: string;
-  initial: string;
-  expiresAt?: Date;
+export class SudokuBookEntity implements SudokuBook {
+  sudokuBookId: string;
+  puzzles: SudokuBookPuzzle[];
+  expiresAt?: Date | undefined;
   createdAt: Date;
   updatedAt: Date;
 
   constructor({
-    sudokuId,
-    difficulty,
-    initial,
-    final,
+    sudokuBookId,
+    puzzles,
     expiresAt,
     createdAt,
     updatedAt,
-  }: Sudoku) {
-    this.difficulty = difficulty;
-    this.final = final;
-    this.sudokuId = sudokuId;
-    this.initial = initial;
+  }: SudokuBook) {
+    this.sudokuBookId = sudokuBookId;
+    this.puzzles = puzzles;
     this.expiresAt = expiresAt;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;

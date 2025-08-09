@@ -20,6 +20,8 @@ import { SudokuQQWingDifficulty } from '@/types/enums/difficulty.enum';
 import { validateDifficulty } from '@/utils/validateDifficulty';
 import { Sudoku } from './dto/sudoku';
 import { ApiKey } from '@/decorators/api-key.decorator';
+import { SudokuBookDto } from './dto/sudoku-book.dto';
+import { SudokuBook } from './dto/sudoku-book';
 
 @ApiTags('sudoku')
 @ApiBearerAuth('access-token')
@@ -49,5 +51,20 @@ export class SudokuController {
       throw new BadRequestException('Invalid difficulty');
     }
     return this.sudokuService.sudokuOfTheDay(difficulty, isTomorrow);
+  }
+
+  @ApiOkResponse({
+    description: 'Sudoku book of the month.',
+    type: [SudokuBookDto],
+  })
+  @ApiQuery({ name: 'isNextMonth', type: Boolean, required: false })
+  @Get('bookOfTheMonth')
+  @ApiKey()
+  async bookOfTheMonth(
+    @Request() req: RequestWithUser,
+    @Query('isNextMonth', new ParseBoolPipe({ optional: true }))
+    isNextMonth: boolean | undefined,
+  ): Promise<SudokuBook> {
+    return this.sudokuService.sudokuBookOfTheMonth(isNextMonth);
   }
 }

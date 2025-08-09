@@ -3,10 +3,16 @@ import { Injectable } from '@nestjs/common';
 import { Sudoku } from './dto/sudoku';
 import { qqwing } from '@/lib/qqwing';
 import { SudokuRepository } from './repository/sudoku.repository';
+import { SudokuBook } from './dto/sudoku-book';
+import { SudokuBookPuzzle } from './dto/sudoku-book-puzzle';
+import { SudokuBookRepository } from './repository/sudoku-book.repository';
 
 @Injectable()
 export class SudokuService {
-  constructor(private readonly sudokuRepository: SudokuRepository) {}
+  constructor(
+    private readonly sudokuRepository: SudokuRepository,
+    private readonly sudokuBookRepository: SudokuBookRepository,
+  ) {}
 
   async sudokuOfTheDay(
     difficulty: SudokuQQWingDifficulty,
@@ -32,12 +38,15 @@ export class SudokuService {
     return sudoku;
   }
 
-  async sudokuBookOfTheMonth(isTomorrow: boolean | undefined): Promise<Sudoku> {
+  async sudokuBookOfTheMonth(
+    isNextMonth: boolean | undefined,
+  ): Promise<SudokuBook> {
     // Look up to see if sudoku of this difficulty has already been generated today
     // If it hasn't, generate and return it
-    let sudoku =
-      await this.sudokuBookRepository.findSudokuBookOfTheMonth(isTomorrow);
-    if (!sudoku) {
+    let sudokuBook =
+      await this.sudokuBookRepository.findSudokuBookOfTheMonth(isNextMonth);
+    if (!sudokuBook) {
+      const puzzles: SudokuBookPuzzle[] = [];
       // TODO select random seeds from each difficulty
       // TODO shuffle each seed
       // https://mathwithbaddrawings.com/2017/01/04/1-2-trillion-ways-to-play-the-same-sudoku/
@@ -46,13 +55,13 @@ export class SudokuService {
       // Swap bands, stacks
       // Swap rows and columns within bands and stacks respectively
       // Swap all of one number with all of another number (e.g. swap all 1s with 9s)
-      sudoku = await this.sudokuBookRepository.insertSudokuBookOfTheMonth(
+      sudokuBook = await this.sudokuBookRepository.insertSudokuBookOfTheMonth(
         {
-          // TODO
+          puzzles,
         },
-        isTomorrow,
+        isNextMonth,
       );
     }
-    return sudoku;
+    return sudokuBook;
   }
 }

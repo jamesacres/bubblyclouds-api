@@ -1,56 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { DynamoDBAdapter } from '@/dynamodb/dynamodb-adapter';
-import { Sudoku } from '../dto/sudoku';
 import { DynamoDBAdapterFactory } from '@/dynamodb/dynamodb-adapter.factory';
-import { SudokuEntity } from '../entities/sudoku.entity';
 import { Model } from '@/types/enums/model';
-import { SudokuQQWingDifficulty } from '@/types/enums/difficulty.enum';
+import { SudokuBook } from '../dto/sudoku-book';
+import { SudokuBookEntity } from '../entities/sudoku-book.entity';
 
 @Injectable()
-export class SudokuRepository {
-  private adapter: DynamoDBAdapter<Sudoku>;
+export class SudokuBookRepository {
+  private adapter: DynamoDBAdapter<SudokuBook>;
 
   constructor(dynamoDBAdapterFactory: DynamoDBAdapterFactory) {
-    this.adapter = dynamoDBAdapterFactory.createAdapter(Model.SUDOKU);
+    this.adapter = dynamoDBAdapterFactory.createAdapter(Model.SUDOKU_BOOK);
   }
 
-  private sudokuOfTheDayId(
-    difficulty: SudokuQQWingDifficulty,
-    isTomorrow: boolean | undefined,
-  ) {
+  private sudokuBookOfTheMonthId(isNextMonth: boolean | undefined) {
     const now = new Date();
-    if (isTomorrow) {
-      now.setDate(now.getDate() + 1);
+    if (isNextMonth) {
+      now.setMonth(now.getMonth() + 1);
     }
     const date = now.toISOString().slice(0, 10).replaceAll('-', '');
-    return `oftheday-${date}-${difficulty}`;
+    return `ofthemonth-${date}`;
   }
 
-  async insertSudokuOfTheDay(
-    payload: Omit<Sudoku, 'sudokuId' | 'createdAt' | 'updatedAt'>,
-    isTomorrow: boolean | undefined,
-  ): Promise<SudokuEntity> {
-    const sudokuId = this.sudokuOfTheDayId(payload.difficulty, isTomorrow);
+  async insertSudokuBookOfTheMonth(
+    payload: Omit<
+      SudokuBook,
+      'sudokuBookId' | 'createdAt' | 'updatedAt' | 'expiresAt'
+    >,
+    isNextMonth: boolean | undefined,
+  ): Promise<SudokuBookEntity> {
+    const sudokuBookId = this.sudokuBookOfTheMonthId(isNextMonth);
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + (isTomorrow ? 2 : 1));
-    return new SudokuEntity(
+    expiresAt.setMonth(expiresAt.getMonth() + (isNextMonth ? 2 : 1));
+    expiresAt.setDate(1);
+    return new SudokuBookEntity(
       await this.adapter.upsert(
-        sudokuId,
-        { ...payload, sudokuId },
-        { id: 'oftheday', type: Model.SUDOKU },
+        sudokuBookId,
+        { ...payload, sudokuBookId },
+        { id: 'ofthemonth', type: Model.SUDOKU_BOOK },
         expiresAt,
       ),
     );
   }
 
-  async findSudokuOfTheDay(
-    difficulty: SudokuQQWingDifficulty,
-    isTomorrow: boolean | undefined,
-  ): Promise<SudokuEntity | undefined> {
-    const sudokuId = this.sudokuOfTheDayId(difficulty, isTomorrow);
-    return this.adapter.findByIdAndOwner(sudokuId, {
-      id: 'oftheday',
-      type: Model.SUDOKU,
+  async findSudokuBookOfTheMonth(
+    isNextMonth: boolean | undefined,
+  ): Promise<SudokuBookEntity | undefined> {
+    const sudokuBookId = this.sudokuBookOfTheMonthId(isNextMonth);
+    return this.adapter.findByIdAndOwner(sudokuBookId, {
+      id: 'ofthemonth',
+      type: Model.SUDOKU_BOOK,
     });
   }
 }

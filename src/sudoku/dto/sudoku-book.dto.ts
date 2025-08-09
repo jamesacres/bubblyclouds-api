@@ -1,26 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { SudokuBook } from './sudoku-book';
+import { SudokuBookPuzzle } from './sudoku-book-puzzle';
+import { SudokuBookPuzzleDto } from './sudoku-book-puzzle.dto';
 
-export class SudokuDto {
+export class SudokuBookDto implements SudokuBook {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  sudokuId: string;
+  sudokuBookId: string;
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({ type: [SudokuBookPuzzleDto] })
   @IsNotEmpty()
-  difficulty: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  initial: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  final: string;
+  @IsArray()
+  puzzles: SudokuBookPuzzle[];
 
   @ApiPropertyOptional()
   @IsOptional()

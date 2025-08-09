@@ -27,7 +27,7 @@ export class SudokuRepository {
   }
 
   async insertSudokuOfTheDay(
-    payload: Omit<Sudoku, 'sudokuId' | 'createdAt' | 'updatedAt'>,
+    payload: Omit<Sudoku, 'sudokuId' | 'createdAt' | 'updatedAt' | 'expiresAt'>,
     isTomorrow: boolean | undefined,
   ): Promise<SudokuEntity> {
     const sudokuId = this.sudokuOfTheDayId(payload.difficulty, isTomorrow);
