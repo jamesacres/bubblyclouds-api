@@ -1,8 +1,12 @@
 class SudokuScrambler {
   private grid: string[][];
+  private solutionGrid: string[][] | null = null;
 
-  constructor(sudokuString: string) {
+  constructor(sudokuString: string, solutionString?: string) {
     this.grid = this.parseString(sudokuString);
+    if (solutionString) {
+      this.solutionGrid = this.parseString(solutionString);
+    }
   }
 
   /**
@@ -28,6 +32,14 @@ class SudokuScrambler {
    */
   private gridToString(): string {
     return this.grid.map((row) => row.join('')).join('');
+  }
+
+  /**
+   * Convert the solution grid back to a string format
+   */
+  private solutionGridToString(): string | null {
+    if (!this.solutionGrid) return null;
+    return this.solutionGrid.map((row) => row.join('')).join('');
   }
 
   /**
@@ -62,6 +74,18 @@ class SudokuScrambler {
       }
     }
     this.grid = newGrid;
+
+    if (this.solutionGrid) {
+      const newSolutionGrid: string[][] = Array(9)
+        .fill(null)
+        .map(() => Array(9).fill('.'));
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          newSolutionGrid[j][8 - i] = this.solutionGrid[i][j];
+        }
+      }
+      this.solutionGrid = newSolutionGrid;
+    }
   }
 
   /**
@@ -71,6 +95,12 @@ class SudokuScrambler {
     for (let i = 0; i < 9; i++) {
       this.grid[i].reverse();
     }
+
+    if (this.solutionGrid) {
+      for (let i = 0; i < 9; i++) {
+        this.solutionGrid[i].reverse();
+      }
+    }
   }
 
   /**
@@ -78,6 +108,10 @@ class SudokuScrambler {
    */
   private mirrorVertical(): void {
     this.grid.reverse();
+
+    if (this.solutionGrid) {
+      this.solutionGrid.reverse();
+    }
   }
 
   /**
@@ -93,6 +127,18 @@ class SudokuScrambler {
       }
     }
     this.grid = newGrid;
+
+    if (this.solutionGrid) {
+      const newSolutionGrid: string[][] = Array(9)
+        .fill(null)
+        .map(() => Array(9).fill('.'));
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          newSolutionGrid[j][i] = this.solutionGrid[i][j];
+        }
+      }
+      this.solutionGrid = newSolutionGrid;
+    }
   }
 
   /**
@@ -124,11 +170,22 @@ class SudokuScrambler {
     const bands = [0, 1, 2];
     const shuffledBands = this.shuffle(bands);
 
-    // Apply the permutation
+    // Apply the permutation to puzzle grid
     const originalGrid = this.grid.map((row) => [...row]);
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
         this.grid[i * 3 + j] = originalGrid[shuffledBands[i] * 3 + j];
+      }
+    }
+
+    // Apply the same permutation to solution grid
+    if (this.solutionGrid) {
+      const originalSolutionGrid = this.solutionGrid.map((row) => [...row]);
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          this.solutionGrid[i * 3 + j] =
+            originalSolutionGrid[shuffledBands[i] * 3 + j];
+        }
       }
     }
   }
@@ -140,12 +197,25 @@ class SudokuScrambler {
     const stacks = [0, 1, 2];
     const shuffledStacks = this.shuffle(stacks);
 
-    // Apply the permutation
+    // Apply the permutation to puzzle grid
     const originalGrid = this.grid.map((row) => [...row]);
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 3; j++) {
         for (let k = 0; k < 3; k++) {
           this.grid[i][j * 3 + k] = originalGrid[i][shuffledStacks[j] * 3 + k];
+        }
+      }
+    }
+
+    // Apply the same permutation to solution grid
+    if (this.solutionGrid) {
+      const originalSolutionGrid = this.solutionGrid.map((row) => [...row]);
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 3; j++) {
+          for (let k = 0; k < 3; k++) {
+            this.solutionGrid[i][j * 3 + k] =
+              originalSolutionGrid[i][shuffledStacks[j] * 3 + k];
+          }
         }
       }
     }
@@ -159,7 +229,7 @@ class SudokuScrambler {
       const rows = [0, 1, 2];
       const shuffledRows = this.shuffle(rows);
 
-      // Apply the permutation within this band
+      // Apply the permutation within this band to puzzle grid
       const originalRows: string[][] = [];
       for (let i = 0; i < 3; i++) {
         originalRows[i] = [...this.grid[band * 3 + i]];
@@ -167,6 +237,19 @@ class SudokuScrambler {
 
       for (let i = 0; i < 3; i++) {
         this.grid[band * 3 + i] = originalRows[shuffledRows[i]];
+      }
+
+      // Apply the same permutation to solution grid
+      if (this.solutionGrid) {
+        const originalSolutionRows: string[][] = [];
+        for (let i = 0; i < 3; i++) {
+          originalSolutionRows[i] = [...this.solutionGrid[band * 3 + i]];
+        }
+
+        for (let i = 0; i < 3; i++) {
+          this.solutionGrid[band * 3 + i] =
+            originalSolutionRows[shuffledRows[i]];
+        }
       }
     }
   }
@@ -179,7 +262,7 @@ class SudokuScrambler {
       const cols = [0, 1, 2];
       const shuffledCols = this.shuffle(cols);
 
-      // Apply the permutation within this stack
+      // Apply the permutation within this stack to puzzle grid
       const originalCols: string[] = Array(9);
       for (let i = 0; i < 9; i++) {
         for (let j = 0; j < 3; j++) {
@@ -191,6 +274,24 @@ class SudokuScrambler {
       for (let i = 0; i < 9; i++) {
         for (let j = 0; j < 3; j++) {
           this.grid[i][stack * 3 + j] = originalCols[i][shuffledCols[j]];
+        }
+      }
+
+      // Apply the same permutation to solution grid
+      if (this.solutionGrid) {
+        const originalSolutionCols: string[] = Array(9);
+        for (let i = 0; i < 9; i++) {
+          for (let j = 0; j < 3; j++) {
+            if (j === 0) originalSolutionCols[i] = '';
+            originalSolutionCols[i] += this.solutionGrid[i][stack * 3 + j];
+          }
+        }
+
+        for (let i = 0; i < 9; i++) {
+          for (let j = 0; j < 3; j++) {
+            this.solutionGrid[i][stack * 3 + j] =
+              originalSolutionCols[i][shuffledCols[j]];
+          }
         }
       }
     }
@@ -209,11 +310,22 @@ class SudokuScrambler {
       mapping[digits[i]] = shuffledDigits[i];
     }
 
-    // Apply mapping
+    // Apply mapping to puzzle grid
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
         if (this.grid[i][j] !== '.') {
           this.grid[i][j] = mapping[this.grid[i][j]];
+        }
+      }
+    }
+
+    // Apply the same mapping to solution grid
+    if (this.solutionGrid) {
+      for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+          if (this.solutionGrid[i][j] !== '.') {
+            this.solutionGrid[i][j] = mapping[this.solutionGrid[i][j]];
+          }
         }
       }
     }
@@ -231,7 +343,7 @@ class SudokuScrambler {
   /**
    * Main scrambling function that applies random transformations
    */
-  public scramble(): string {
+  public scramble(): { puzzle: string; solution?: string } {
     // Apply transformations in random order for maximum scrambling
     const operations = [
       () => this.randomRotation(),
@@ -248,27 +360,44 @@ class SudokuScrambler {
     const shuffledOperations = this.shuffle(operations);
     shuffledOperations.forEach((operation) => operation());
 
-    return this.gridToString();
+    const result: { puzzle: string; solution?: string } = {
+      puzzle: this.gridToString(),
+    };
+
+    if (this.solutionGrid) {
+      result.solution = this.solutionGridToString() || undefined;
+    }
+
+    return result;
   }
 }
 
 /**
  * Scramble a Sudoku puzzle while preserving its logical structure
  * @param sudokuString - 81-character string representing the puzzle
- * @returns Scrambled puzzle in the same format
+ * @param solutionString - Optional 81-character string representing the solution
+ * @returns Scrambled puzzle and solution (if provided) in the same format
  */
-export function scrambleSudoku(sudokuString: string): string {
-  const scrambler = new SudokuScrambler(sudokuString);
+export function scrambleSudoku(
+  sudokuString: string,
+  solutionString?: string,
+): { puzzle: string; solution?: string } {
+  const scrambler = new SudokuScrambler(sudokuString, solutionString);
   return scrambler.scramble();
 }
 
 // Example usage:
 const originalSudoku =
   '.8.......571......4.2.....16.5...8..8...7.2........3...6..83.5..3...5..47.826....';
-console.log('Original:', originalSudoku);
+const originalSolution =
+  '386591427571426938492837561615342879843679215927158346164983752239715684758264193';
+
+console.log('Original puzzle:', originalSudoku);
+console.log('Original solution:', originalSolution);
 
 // Run multiple times to see different results
 for (let i = 1; i <= 3; i++) {
-  const scrambled = scrambleSudoku(originalSudoku);
-  console.log(`Scrambled ${i}:`, scrambled);
+  const scrambled = scrambleSudoku(originalSudoku, originalSolution);
+  console.log(`Scrambled ${i} puzzle:`, scrambled.puzzle);
+  console.log(`Scrambled ${i} solution:`, scrambled.solution);
 }
