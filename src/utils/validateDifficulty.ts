@@ -1,4 +1,4 @@
-import { Difficulty } from '@/types/enums/difficulty.enum';
+import { SudokuQQWingDifficulty } from '@/types/enums/difficulty.enum';
 
 export const validateDifficulty = (difficulty: string) =>
-  Object.values(Difficulty).includes(difficulty as Difficulty);
+  Object.values(SudokuQQWingDifficulty).includes(difficulty as SudokuQQWingDifficulty);

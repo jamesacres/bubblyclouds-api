@@ -4,7 +4,7 @@ import { Sudoku } from '../dto/sudoku';
 import { DynamoDBAdapterFactory } from '@/dynamodb/dynamodb-adapter.factory';
 import { SudokuEntity } from '../entities/sudoku.entity';
 import { Model } from '@/types/enums/model';
-import { Difficulty } from '@/types/enums/difficulty.enum';
+import { SudokuQQWingDifficulty } from '@/types/enums/difficulty.enum';
 
 @Injectable()
 export class SudokuRepository {
@@ -15,7 +15,7 @@ export class SudokuRepository {
   }
 
   private sudokuOfTheDayId(
-    difficulty: Difficulty,
+    difficulty: SudokuQQWingDifficulty,
     isTomorrow: boolean | undefined,
   ) {
     const now = new Date();
@@ -27,7 +27,7 @@ export class SudokuRepository {
   }
 
   async insertSudokuOfTheDay(
-    payload: Omit<Sudoku, 'sudokuId' | 'createdAt' | 'updatedAt'>,
+    payload: Omit<Sudoku, 'sudokuId' | 'createdAt' | 'updatedAt' | 'expiresAt'>,
     isTomorrow: boolean | undefined,
   ): Promise<SudokuEntity> {
     const sudokuId = this.sudokuOfTheDayId(payload.difficulty, isTomorrow);
@@ -44,7 +44,7 @@ export class SudokuRepository {
   }
 
   async findSudokuOfTheDay(
-    difficulty: Difficulty,
+    difficulty: SudokuQQWingDifficulty,
     isTomorrow: boolean | undefined,
   ): Promise<SudokuEntity | undefined> {
     const sudokuId = this.sudokuOfTheDayId(difficulty, isTomorrow);

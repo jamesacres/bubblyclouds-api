@@ -5,4 +5,5 @@ export enum Model {
   MEMBER = 'member',
   SESSION = 'session',
   SUDOKU = 'sudoku',
+  SUDOKU_BOOK = 'sudoku-book',
 }

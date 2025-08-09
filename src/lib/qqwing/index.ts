@@ -1,4 +1,4 @@
-import { Difficulty } from '@/types/enums/difficulty.enum.js';
+import { SudokuQQWingDifficulty } from '@/types/enums/difficulty.enum.js';
 
 // @ts-expect-error build path
 import factory = require('./wasm/qqwing/main.js');
@@ -25,7 +25,7 @@ class QQWing {
     return result;
   }
 
-  async generate(difficulty: Difficulty): Promise<{
+  async generate(difficulty: SudokuQQWingDifficulty): Promise<{
     initial: string;
     final: string;
   }> {

@@ -1,8 +1,8 @@
-import { Difficulty } from '@/types/enums/difficulty.enum';
+import { SudokuQQWingDifficulty } from '@/types/enums/difficulty.enum';
 import { Sudoku } from '../dto/sudoku';
 
 export class SudokuEntity implements Sudoku {
-  difficulty: Difficulty;
+  difficulty: SudokuQQWingDifficulty;
   final: string;
   sudokuId: string;
   initial: string;

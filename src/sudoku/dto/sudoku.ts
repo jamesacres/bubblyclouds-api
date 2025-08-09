@@ -1,8 +1,8 @@
-import { Difficulty } from '@/types/enums/difficulty.enum';
+import { SudokuQQWingDifficulty } from '@/types/enums/difficulty.enum';
 
 export interface Sudoku {
   sudokuId: string;
-  difficulty: Difficulty;
+  difficulty: SudokuQQWingDifficulty;
   initial: string;
   final: string;
   expiresAt?: Date;

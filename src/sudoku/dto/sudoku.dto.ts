@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDate, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Sudoku } from './sudoku';
+import { SudokuQQWingDifficulty } from '@/types/enums/difficulty.enum';
 
-export class SudokuDto {
+export class SudokuDto implements Sudoku {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -10,7 +12,7 @@ export class SudokuDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  difficulty: string;
+  difficulty: SudokuQQWingDifficulty;
 
   @ApiProperty()
   @IsString()

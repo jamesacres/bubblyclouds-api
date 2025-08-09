@@ -14,6 +14,11 @@
         "include": "../wasm",
         "outDir": "dist/wasm",
         "watchAssets": true
+      },
+      {
+        "include": "../sudoku-seeds",
+        "outDir": "dist/sudoku-seeds",
+        "watchAssets": true
       }
     ]
   }
