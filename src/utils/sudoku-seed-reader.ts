@@ -215,7 +215,7 @@ function readSeedFile(filePath: string): SudokuBookPuzzle[] {
  * Generates 50 sudoku puzzles with bell curve distribution across difficulty levels
  */
 export function generateSudokuSelection(
-  seedsDir: string = '/Users/jamesacres/Documents/git/bubblyclouds-api/src/config/sudoku/seeds',
+  seedsDir: string = '../seeds',
 ): SudokuBookPuzzle[] {
   const allPuzzles: SudokuBookPuzzle[] = [];
 
@@ -238,9 +238,9 @@ export function generateSudokuSelection(
 /**
  * Reads all seed files and returns all puzzles by difficulty
  */
-export function readAllSudokuSeeds(
-  seedsDir: string = '/Users/jamesacres/Documents/git/bubblyclouds-api/src/config/sudoku/seeds',
-): { [key: string]: SudokuBookPuzzle[] } {
+export function readAllSudokuSeeds(seedsDir: string = '../seeds'): {
+  [key: string]: SudokuBookPuzzle[];
+} {
   const seedFiles = fs
     .readdirSync(seedsDir)
     .filter((file) => file.endsWith('.txt'));
