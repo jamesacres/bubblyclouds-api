@@ -270,5 +270,28 @@ export class ApiStack extends Stack {
         targets: [new ApiDestinationTarget(destination)],
       });
     });
+
+    // Sudoku book of the month
+    const destination = new ApiDestination(
+      this,
+      `SudokuApiDestination-bookOftheMonth`,
+      {
+        connection,
+        endpoint: `${apiUrl}/sudoku/bookOfTheMonth?isNextMonth=true`,
+        httpMethod: HttpMethod.GET,
+        description: `API destination for book of the month sudoku`,
+      },
+    );
+
+    new Rule(this, `SudokuCronJob-bookOfTheMonth`, {
+      schedule: Schedule.cron({
+        hour: '22',
+        minute: '04',
+        day: '27',
+        month: '*',
+        year: '*',
+      }),
+      targets: [new ApiDestinationTarget(destination)],
+    });
   }
 }
