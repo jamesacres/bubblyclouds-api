@@ -10,6 +10,7 @@ import { PartiesService } from '@/parties/parties.service';
 import { MemberRepository } from '@/members/repository/member.repository';
 import { SessionEntity } from './entities/session.entity';
 import { App } from '@/types/enums/app.enum';
+import { SessionDto } from './dto/session.dto';
 
 @Injectable()
 export class SessionsService {
@@ -23,25 +24,54 @@ export class SessionsService {
     sessionId: string,
     userId: string,
   ): Promise<Record<string, PartyMemberSession>> {
-    const result: SessionWithPartiesDto['parties'] = {};
     const { app } = splitSessionId(sessionId);
     const parties = await this.partiesService.findAllForUser(userId, app);
-    for (const party of parties) {
-      result[party.partyId] = { memberSessions: {} };
-      const members = await party.findMembers(this.memberRepository);
-      for (const member of members.filter(
-        (member) => member.userId !== userId,
-      )) {
-        const memberSession = await member.getSession(
-          sessionId,
-          this.sessionRepository,
-        );
-        if (memberSession) {
-          result[party.partyId].memberSessions[memberSession.userId] =
-            memberSession;
-        }
-      }
-    }
+    const result: SessionWithPartiesDto['parties'] = (
+      await Promise.all(
+        parties.map(async (party) => {
+          const thisResult: SessionWithPartiesDto['parties'] = {
+            [party.partyId]: { memberSessions: {} },
+          };
+          const members = await party.findMembers(this.memberRepository);
+          thisResult[party.partyId].memberSessions = (
+            await Promise.all(
+              members
+                .filter((member) => member.userId !== userId)
+                .map(async (member) => {
+                  const thisMemberSessions: Record<string, SessionDto> = {};
+                  const memberSession = await member.getSession(
+                    sessionId,
+                    this.sessionRepository,
+                  );
+                  if (memberSession) {
+                    thisMemberSessions[memberSession.userId] = memberSession;
+                  }
+                  return thisMemberSessions;
+                }),
+            )
+          ).reduce(
+            (thisPartyMemberSessions, thisMemberSessions) => {
+              const newResult: Record<string, SessionDto> = {
+                ...thisPartyMemberSessions,
+                ...thisMemberSessions,
+              };
+              return newResult;
+            },
+            {} as Record<string, SessionDto>,
+          );
+          return thisResult;
+        }),
+      )
+    ).reduce(
+      (result, thisResult) => {
+        const newResult: SessionWithPartiesDto['parties'] = {
+          ...result,
+          ...thisResult,
+        };
+        return newResult;
+      },
+      {} as SessionWithPartiesDto['parties'],
+    );
     return result;
   }
 
