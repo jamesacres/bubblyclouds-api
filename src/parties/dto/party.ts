@@ -3,6 +3,7 @@ export interface Party {
   appId: string;
   partyName: string;
   createdBy: string;
+  maxSize?: number;
   createdAt: Date;
   updatedAt: Date;
 }

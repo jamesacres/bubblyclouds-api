@@ -8,6 +8,7 @@ export class PartyEntity implements Party {
   appId: string;
   partyName: string;
   createdBy: string;
+  maxSize?: number;
   createdAt: Date;
   updatedAt: Date;
 
@@ -16,6 +17,7 @@ export class PartyEntity implements Party {
     appId,
     partyName,
     createdBy,
+    maxSize,
     createdAt,
     updatedAt,
   }: Party) {
@@ -23,6 +25,7 @@ export class PartyEntity implements Party {
     this.appId = appId;
     this.partyName = partyName;
     this.createdBy = createdBy;
+    this.maxSize = maxSize;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }

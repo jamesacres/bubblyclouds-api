@@ -15,13 +15,14 @@ export class PartiesService {
   ) {}
 
   async create(
-    { appId, partyName, memberNickname }: CreatePartyDto,
+    { appId, partyName, memberNickname, maxSize }: CreatePartyDto,
     createdBy: string,
   ): Promise<PartyDto> {
     const party = await this.partyRepository.insert({
       appId,
       partyName,
       createdBy,
+      maxSize,
     });
 
     // Creator automatically becomes a member

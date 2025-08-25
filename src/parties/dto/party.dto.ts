@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class PartyDto {
   @ApiProperty()
@@ -21,6 +27,11 @@ export class PartyDto {
   @IsString()
   @IsNotEmpty()
   createdBy: string;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsOptional()
+  maxSize?: number;
 
   @ApiProperty()
   @IsDate()
