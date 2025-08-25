@@ -65,7 +65,7 @@ export class PartiesController {
     if (!validateApp(app)) {
       throw new BadRequestException('Invalid app');
     }
-    return this.partiesService.findAllForUser(req.user.sub, app);
+    return this.partiesService.findAllForUser(req.user.sub, app, true);
   }
 
   @ApiNoContentResponse({
