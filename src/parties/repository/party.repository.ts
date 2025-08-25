@@ -31,15 +31,24 @@ export class PartyRepository {
   async find(
     partyId: string,
     createdBy?: string,
+    disableBackoff?: boolean,
   ): Promise<PartyEntity | undefined> {
     let result;
     if (createdBy) {
-      result = await this.adapter.findByIdAndOwner(partyId, {
-        id: createdBy,
-        type: Model.USER,
-      });
+      result = await this.adapter.findByIdAndOwner(
+        partyId,
+        {
+          id: createdBy,
+          type: Model.USER,
+        },
+        disableBackoff,
+      );
     } else {
-      const results = await this.adapter.findAllByModelId(partyId);
+      const results = await this.adapter.findAllByModelId(
+        partyId,
+        undefined,
+        disableBackoff,
+      );
       if (results.length === 1) {
         result = results[0];
       }

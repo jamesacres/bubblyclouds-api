@@ -97,6 +97,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
   async findByIdAndOwner(
     id: string,
     owner: Owner,
+    disableBackoff?: boolean,
   ): Promise<
     (T & { expiresAt?: Date; createdAt: Date; updatedAt: Date }) | undefined
   > {
@@ -112,17 +113,18 @@ export class DynamoDBAdapter<T extends BaseModel> {
     const command = new GetCommand(params);
 
     const getResult = async () => {
+      console.info(`getResult owner:${owner.type}-${owner.id} id:${id}`);
       const commandResult = await this.dynamoDBDocumentClient.send(command);
       const result = commandResult?.Item as Result<T> | undefined;
       if (!result) {
-        throw Error('not found');
+        throw Error(`not found owner:${owner.type}-${owner.id} id:${id}`);
       }
       return result;
     };
 
     const result = await backOff(getResult, {
       jitter: 'full',
-      numOfAttempts: MAX_RETRIES,
+      numOfAttempts: disableBackoff ? 1 : MAX_RETRIES,
     }).catch((e) => {
       console.warn(e);
       return undefined;
@@ -139,22 +141,26 @@ export class DynamoDBAdapter<T extends BaseModel> {
   async findAllByModelId(
     id: string,
     owner?: { type: Model; idPrefix?: string },
+    disableBackoff?: boolean,
   ): Promise<(T & { expiresAt?: Date; createdAt: Date; updatedAt: Date })[]> {
     console.info('findAllByModelId', this.modelName, id, owner);
-    return this.getResults({
-      TableName: this.tableName,
-      KeyConditionExpression: `modelId = :modelId${owner ? ` and begins_with(#owner, :ownerPrefix)` : ''}`,
-      ...(owner ? { ExpressionAttributeNames: { '#owner': 'owner' } } : {}),
-      ExpressionAttributeValues: {
-        ':modelId': this.modelName + '-' + id,
-        ...(owner
-          ? {
-              ':ownerPrefix': `${owner.type}-${owner.idPrefix !== undefined ? owner.idPrefix : ''}`,
-            }
-          : {}),
+    return this.getResults(
+      {
+        TableName: this.tableName,
+        KeyConditionExpression: `modelId = :modelId${owner ? ` and begins_with(#owner, :ownerPrefix)` : ''}`,
+        ...(owner ? { ExpressionAttributeNames: { '#owner': 'owner' } } : {}),
+        ExpressionAttributeValues: {
+          ':modelId': this.modelName + '-' + id,
+          ...(owner
+            ? {
+                ':ownerPrefix': `${owner.type}-${owner.idPrefix !== undefined ? owner.idPrefix : ''}`,
+              }
+            : {}),
+        },
+        ProjectionExpression: 'payload, expiresAt, createdAt, updatedAt',
       },
-      ProjectionExpression: 'payload, expiresAt, createdAt, updatedAt',
-    });
+      disableBackoff,
+    );
   }
 
   async findAllByOwner(
@@ -266,7 +272,10 @@ export class DynamoDBAdapter<T extends BaseModel> {
     }
   }
 
-  private async getResults(params: QueryCommandInput) {
+  private async getResults(
+    params: QueryCommandInput,
+    disableBackoff?: boolean,
+  ) {
     const getPage = async (
       ExclusiveStartKey?: QueryCommandOutput['LastEvaluatedKey'],
     ) => {
@@ -276,18 +285,23 @@ export class DynamoDBAdapter<T extends BaseModel> {
       });
 
       const getResult = async () => {
+        console.info(
+          `getResult ExpressionAttributeValues:${JSON.stringify(params.ExpressionAttributeValues)}`,
+        );
         const commandResult = await this.dynamoDBDocumentClient.send(command);
         const items = commandResult?.Items as Result<T>[];
         const LastEvaluatedKey = commandResult.LastEvaluatedKey;
         if (!items?.length) {
-          throw Error('not found');
+          throw Error(
+            `not found ExpressionAttributeValues:${JSON.stringify(params.ExpressionAttributeValues)}`,
+          );
         }
         return { items, LastEvaluatedKey };
       };
 
       return backOff(getResult, {
         jitter: 'full',
-        numOfAttempts: MAX_RETRIES,
+        numOfAttempts: disableBackoff ? 1 : MAX_RETRIES,
       }).catch((e) => {
         console.warn(e);
         return { items: [], LastEvaluatedKey: undefined };

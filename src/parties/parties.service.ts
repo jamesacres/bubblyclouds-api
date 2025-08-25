@@ -34,7 +34,11 @@ export class PartiesService {
     return party;
   }
 
-  async findAllForUser(userId: string, app: App): Promise<PartyEntity[]> {
+  async findAllForUser(
+    userId: string,
+    app: App,
+    disableBackoff?: boolean,
+  ): Promise<PartyEntity[]> {
     const members = await this.memberRepository.findAllForUser(userId, {
       type: Model.PARTY,
       idPrefix: app,
@@ -45,7 +49,11 @@ export class PartiesService {
 
     const parties: PartyEntity[] = [];
     for (const partyId of partyIds) {
-      const party = await this.partyRepository.find(partyId);
+      const party = await this.partyRepository.find(
+        partyId,
+        undefined,
+        disableBackoff,
+      );
       if (party) {
         parties.push(party);
       }

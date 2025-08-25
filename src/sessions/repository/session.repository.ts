@@ -32,11 +32,16 @@ export class SessionRepository {
   async find(
     sessionId: string,
     createdBy: string,
+    disableBackoff?: boolean,
   ): Promise<SessionEntity | undefined> {
-    const result = await this.adapter.findByIdAndOwner(sessionId, {
-      id: createdBy,
-      type: Model.USER,
-    });
+    const result = await this.adapter.findByIdAndOwner(
+      sessionId,
+      {
+        id: createdBy,
+        type: Model.USER,
+      },
+      disableBackoff,
+    );
     if (result) {
       return new SessionEntity(result);
     }

@@ -26,7 +26,8 @@ export class MemberEntity implements Member {
   async getSession(
     sessionId: string,
     sessionRepository: SessionRepository,
+    disableBackoff?: boolean,
   ): Promise<SessionEntity | undefined> {
-    return sessionRepository.find(sessionId, this.userId);
+    return sessionRepository.find(sessionId, this.userId, disableBackoff);
   }
 }

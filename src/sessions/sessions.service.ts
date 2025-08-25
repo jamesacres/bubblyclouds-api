@@ -25,7 +25,7 @@ export class SessionsService {
     userId: string,
   ): Promise<Record<string, PartyMemberSession>> {
     const { app } = splitSessionId(sessionId);
-    const parties = await this.partiesService.findAllForUser(userId, app);
+    const parties = await this.partiesService.findAllForUser(userId, app, true);
     const result: SessionWithPartiesDto['parties'] = (
       await Promise.all(
         parties.map(async (party) => {
@@ -42,6 +42,7 @@ export class SessionsService {
                   const memberSession = await member.getSession(
                     sessionId,
                     this.sessionRepository,
+                    true,
                   );
                   if (memberSession) {
                     thisMemberSessions[memberSession.userId] = memberSession;
