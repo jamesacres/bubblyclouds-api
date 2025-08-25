@@ -10,6 +10,7 @@
     "test": "jest",
     "cdk": "cdk",
     "cdk:deploy": "ENV=prod cdk deploy",
+    "cdk:diff": "ENV=prod cdk diff",
     "cdk:synth": "ENV=dev cdk synth"
   },
   "devDependencies": {

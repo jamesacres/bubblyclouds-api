@@ -114,6 +114,8 @@ export class ApiStack extends Stack {
       pointInTimeRecovery: true,
       timeToLiveAttribute: 'expiresAt',
       deletionProtection: true,
+      readCapacity: 25,
+      writeCapacity: 25,
     });
 
     // As per src/dynamodb/dynamodb-adapter.ts define secondary indexes
