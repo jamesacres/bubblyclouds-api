@@ -7,12 +7,14 @@ import { Model } from '@/types/enums/model';
 import { PartyEntity } from '@/parties/entities/party.entity';
 import { InviteDto } from './dto/invite.dto';
 import { splitModelId } from '@/utils/splitModelId';
+import { MemberRepository } from '@/members/repository/member.repository';
 
 @Injectable()
 export class InvitesService {
   constructor(
     private readonly inviteRepository: InviteRepository,
     private readonly partyRepository: PartyRepository,
+    private readonly memberRepository: MemberRepository,
   ) {}
 
   private async findResource(
@@ -21,7 +23,19 @@ export class InvitesService {
   ): Promise<PartyEntity | undefined> {
     const [type, id] = splitModelId(resourceId);
     if (type === Model.PARTY) {
-      return this.partyRepository.find(id, createdBy);
+      const party = await this.partyRepository.find(id, createdBy);
+      if (party) {
+        const maxSize = party.maxSize;
+        const memberCount = (
+          await this.memberRepository.findAllMembersForResource(resourceId)
+        ).length;
+        if (memberCount >= maxSize) {
+          // Treat as expired when full
+          console.warn('memberCount >= maxSize', memberCount, maxSize);
+          return undefined;
+        }
+      }
+      return party;
     }
   }
 

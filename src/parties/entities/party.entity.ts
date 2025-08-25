@@ -3,12 +3,14 @@ import { Party } from '../dto/party';
 import { Model } from '@/types/enums/model';
 import { MemberEntity } from '@/members/entities/member.entity';
 
+const DEFAULT_MAX_SIZE = 5;
+
 export class PartyEntity implements Party {
   partyId: string;
   appId: string;
   partyName: string;
   createdBy: string;
-  maxSize?: number;
+  maxSize: number;
   createdAt: Date;
   updatedAt: Date;
 
@@ -25,7 +27,7 @@ export class PartyEntity implements Party {
     this.appId = appId;
     this.partyName = partyName;
     this.createdBy = createdBy;
-    this.maxSize = maxSize;
+    this.maxSize = maxSize || DEFAULT_MAX_SIZE;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
