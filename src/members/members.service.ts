@@ -32,15 +32,16 @@ export class MembersService {
 
   async create(
     createMemberDto: CreateMemberDto,
-    createdBy: string,
+    userId: string,
   ): Promise<MemberDto> {
     const invite = await this.inviteService.findPublicInvite(
       createMemberDto.inviteId,
+      userId,
     );
     return this.memberRepository.insert({
+      userId,
       memberNickname: createMemberDto.memberNickname,
       resourceId: invite.resourceId,
-      userId: createdBy,
     });
   }
 

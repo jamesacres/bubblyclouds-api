@@ -12,7 +12,10 @@ import {
 import { Public } from '@/decorators/public.decorator';
 import { InviteDto } from './dto/invite.dto';
 import { PublicInviteDto } from './dto/public-invite.dto';
-import { RequestWithUser } from '@/types/interfaces/requestWithUser';
+import {
+  RequestWithOptionalUser,
+  RequestWithUser,
+} from '@/types/interfaces/requestWithUser';
 
 @RequirePermissions(Permission.INVITES_WRITE)
 @ApiTags('invites')
@@ -35,13 +38,17 @@ export class InvitesController {
   }
 
   @Public()
+  @ApiBearerAuth('access-token')
   @ApiOkResponse({
     description:
       'Public Invite details, including who invited them to the resource, and optionally a session to redirect to.',
     type: PublicInviteDto,
   })
   @Get(':inviteId')
-  findOne(@Param('inviteId') inviteId: string): Promise<PublicInviteDto> {
-    return this.invitesService.findPublicInvite(inviteId);
+  findOne(
+    @Request() req: RequestWithOptionalUser,
+    @Param('inviteId') inviteId: string,
+  ): Promise<PublicInviteDto> {
+    return this.invitesService.findPublicInvite(inviteId, req.user?.sub);
   }
 }

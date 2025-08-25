@@ -27,11 +27,14 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request: RequestWithUser = context.switchToHttp().getRequest();
+    const token = this.extractTokenFromHeader(request);
+
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    if (isPublic) {
+    if (isPublic && !token) {
       return true;
     }
 
@@ -40,8 +43,6 @@ export class AuthGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    const request: RequestWithUser = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
     if (!token) {
       // If no Bearer token see if we have a valid API Key instead
       const isApiKey = this.reflector.getAllAndOverride<boolean>(IS_API_KEY, [

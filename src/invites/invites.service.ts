@@ -19,19 +19,22 @@ export class InvitesService {
 
   private async findResource(
     resourceId: string,
-    createdBy?: string,
+    createdBy: string | undefined,
+    requestedBy: string | undefined,
   ): Promise<PartyEntity | undefined> {
     const [type, id] = splitModelId(resourceId);
     if (type === Model.PARTY) {
       const party = await this.partyRepository.find(id, createdBy);
       if (party) {
         const maxSize = party.maxSize;
-        const memberCount = (
-          await this.memberRepository.findAllMembersForResource(resourceId)
-        ).length;
-        if (memberCount >= maxSize) {
-          // Treat as expired when full
-          console.warn('memberCount >= maxSize', memberCount, maxSize);
+        const members =
+          await this.memberRepository.findAllMembersForResource(resourceId);
+        const isInParty = !!members.find(
+          (member) => member.userId === requestedBy,
+        );
+        if (!isInParty && members.length >= maxSize) {
+          // Treat as expired when full if not in party
+          console.warn('memberCount >= maxSize', members.length, maxSize);
           return undefined;
         }
       }
@@ -50,7 +53,7 @@ export class InvitesService {
     createdBy: string,
   ): Promise<InviteDto> {
     // Validate the resource was created by the userId from the request
-    if (!(await this.findResource(resourceId, createdBy))) {
+    if (!(await this.findResource(resourceId, createdBy, createdBy))) {
       throw new NotFoundException('Resource not found');
     }
     return this.inviteRepository.insert({
@@ -63,13 +66,20 @@ export class InvitesService {
     });
   }
 
-  async findPublicInvite(inviteId: string): Promise<PublicInviteDto> {
+  async findPublicInvite(
+    inviteId: string,
+    requestedBy: string | undefined,
+  ): Promise<PublicInviteDto> {
     const invite = await this.inviteRepository.find(inviteId);
     if (!invite) {
       throw new NotFoundException('Invite not found');
     }
     // Check resource still exists
-    const resource = await this.findResource(invite.resourceId);
+    const resource = await this.findResource(
+      invite.resourceId,
+      undefined,
+      requestedBy,
+    );
     if (!resource) {
       throw new NotFoundException('Resource not found');
     }

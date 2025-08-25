@@ -5,3 +5,7 @@ export interface RequestWithUser extends Request {
   user: User;
   authToken: string;
 }
+
+export interface RequestWithOptionalUser extends Omit<RequestWithUser, 'user'> {
+  user?: User;
+}
