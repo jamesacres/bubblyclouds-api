@@ -6,6 +6,7 @@ import { PartyRepository } from './repository/party.repository';
 import { MemberRepository } from '@/members/repository/member.repository';
 import { Model } from '@/types/enums/model';
 import { PartyEntity } from './entities/party.entity';
+import { UpdatePartyDto } from './dto/update-party.dto';
 
 @Injectable()
 export class PartiesService {
@@ -93,6 +94,23 @@ export class PartiesService {
     if (party && party.createdBy === userId) {
       await this.partyRepository.destroy(party);
       return;
+    }
+    throw new NotFoundException('Party not found');
+  }
+
+  async updateForUser(
+    userId: string,
+    app: App,
+    partyId: string,
+    updatePartyDto: UpdatePartyDto,
+  ): Promise<PartyDto> {
+    const party = await this.findForUser(userId, app, partyId);
+    // Confirm the party was created by this user
+    if (party && party.createdBy === userId) {
+      return this.partyRepository.update(partyId, {
+        ...party,
+        ...updatePartyDto,
+      });
     }
     throw new NotFoundException('Party not found');
   }

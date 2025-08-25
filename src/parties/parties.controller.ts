@@ -9,6 +9,7 @@ import {
   Delete,
   HttpCode,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { PartiesService } from './parties.service';
 import { CreatePartyDto } from './dto/create-party.dto';
@@ -27,6 +28,7 @@ import { App } from '@/types/enums/app.enum';
 import { RequestWithUser } from '@/types/interfaces/requestWithUser';
 import { validateApp } from '@/utils/validateApp';
 import { constants } from 'http2';
+import { UpdatePartyDto } from './dto/update-party.dto';
 
 @RequirePermissions(Permission.PARTIES_WRITE)
 @ApiTags('parties')
@@ -80,5 +82,25 @@ export class PartiesController {
     @Query('app') app: App,
   ): Promise<void> {
     await this.partiesService.deleteForUser(req.user.sub, app, partyId);
+  }
+
+  @ApiOkResponse({
+    description: 'Updated party',
+    type: PartyDto,
+  })
+  @ApiQuery({ name: 'app', enum: App, required: true })
+  @Patch(':partyId')
+  async update(
+    @Request() req: RequestWithUser,
+    @Param('partyId') partyId: string,
+    @Query('app') app: App,
+    @Body() updatePartyDto: UpdatePartyDto,
+  ): Promise<PartyDto> {
+    return this.partiesService.updateForUser(
+      req.user.sub,
+      app,
+      partyId,
+      updatePartyDto,
+    );
   }
 }

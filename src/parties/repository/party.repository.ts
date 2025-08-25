@@ -28,6 +28,19 @@ export class PartyRepository {
     );
   }
 
+  async update(
+    partyId: string,
+    payload: Omit<Party, 'partyId' | 'createdAt' | 'updatedAt'>,
+  ): Promise<PartyEntity> {
+    return new PartyEntity(
+      await this.adapter.upsert(
+        partyId,
+        { ...payload, partyId },
+        { id: payload.createdBy, type: Model.USER },
+      ),
+    );
+  }
+
   async find(
     partyId: string,
     createdBy?: string,
