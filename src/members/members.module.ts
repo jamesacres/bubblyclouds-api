@@ -5,6 +5,8 @@ import { InvitesService } from '@/invites/invites.service';
 import { MemberRepository } from './repository/member.repository';
 import { InviteRepository } from '@/invites/repository/invite.repository';
 import { PartyRepository } from '@/parties/repository/party.repository';
+import { RevenuecatService } from '@/revenuecat/revenuecat.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   controllers: [MembersController],
@@ -14,6 +16,8 @@ import { PartyRepository } from '@/parties/repository/party.repository';
     InviteRepository,
     PartyRepository,
     InvitesService,
+    RevenuecatService,
+    ConfigService,
   ],
 })
 export class MembersModule {}

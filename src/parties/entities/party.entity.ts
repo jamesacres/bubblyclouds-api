@@ -2,6 +2,7 @@ import { MemberRepository } from '@/members/repository/member.repository';
 import { Party } from '../dto/party';
 import { Model } from '@/types/enums/model';
 import { MemberEntity } from '@/members/entities/member.entity';
+import { EntitlementDuration } from '@/types/enums/entitlement-duration.enum';
 
 const DEFAULT_MAX_SIZE = 5;
 
@@ -11,6 +12,7 @@ export class PartyEntity implements Party {
   partyName: string;
   createdBy: string;
   maxSize: number;
+  entitlementDuration?: EntitlementDuration;
   createdAt: Date;
   updatedAt: Date;
 
@@ -22,12 +24,14 @@ export class PartyEntity implements Party {
     maxSize,
     createdAt,
     updatedAt,
+    entitlementDuration,
   }: Party) {
     this.partyId = partyId;
     this.appId = appId;
     this.partyName = partyName;
     this.createdBy = createdBy;
     this.maxSize = maxSize || DEFAULT_MAX_SIZE;
+    this.entitlementDuration = entitlementDuration;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }

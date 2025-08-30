@@ -11,13 +11,16 @@ import { splitModelId } from '@/utils/splitModelId';
 import { PartyRepository } from '@/parties/repository/party.repository';
 import { PartyEntity } from '@/parties/entities/party.entity';
 import { Model } from '@/types/enums/model';
+import { RevenuecatService } from '@/revenuecat/revenuecat.service';
+import { Entitlement } from '@/types/enums/entitlement.enum';
 
 @Injectable()
 export class MembersService {
   constructor(
-    private inviteService: InvitesService,
-    private memberRepository: MemberRepository,
+    private readonly inviteService: InvitesService,
+    private readonly memberRepository: MemberRepository,
     private readonly partyRepository: PartyRepository,
+    private readonly revenuecatService: RevenuecatService,
   ) {}
 
   private async findResource(
@@ -38,11 +41,39 @@ export class MembersService {
       createMemberDto.inviteId,
       userId,
     );
-    return this.memberRepository.insert({
+    const member = await this.memberRepository.insert({
       userId,
       memberNickname: createMemberDto.memberNickname,
       resourceId: invite.resourceId,
     });
+
+    if (invite.entitlementDuration) {
+      const hasPlus = await this.revenuecatService
+        .hasEntitlement(userId, Entitlement.PLUS)
+        .catch((e) => {
+          console.error(e);
+          return false;
+        });
+      if (hasPlus) {
+        console.info(`${userId} already has plus`);
+      } else {
+        // Give entitlement for duration if they don't already have it
+        console.info(
+          `Give entitlement to ${userId} for duration ${invite.entitlementDuration}`,
+        );
+        this.revenuecatService
+          .grantEntitlement(
+            userId,
+            Entitlement.PLUS,
+            invite.entitlementDuration,
+          )
+          .catch((e) => {
+            console.error(e);
+          });
+      }
+    }
+
+    return member;
   }
 
   async findAll(resourceId: string, requestedBy: string): Promise<MemberDto[]> {

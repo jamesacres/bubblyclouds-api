@@ -55,7 +55,7 @@ export class AuthGuard implements CanActivate {
           this.extractBasicAuthFromHeader(request) || {};
         if (username && password) {
           const apiKeys =
-            this.configService.get<AppConfig['apiKeys']>('apiKeys');
+            this.configService.get<AppConfig['apiKeys']>('apiKeys') || {};
           if (apiKeys[username] && apiKeys[username]?.password === password) {
             return true;
           }

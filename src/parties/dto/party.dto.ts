@@ -1,3 +1,4 @@
+import { EntitlementDuration } from '@/types/enums/entitlement-duration.enum';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsDate,
@@ -32,6 +33,11 @@ export class PartyDto {
   @IsNumber()
   @IsOptional()
   maxSize?: number;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  entitlementDuration?: EntitlementDuration;
 
   @ApiProperty()
   @IsDate()

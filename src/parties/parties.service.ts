@@ -7,23 +7,81 @@ import { MemberRepository } from '@/members/repository/member.repository';
 import { Model } from '@/types/enums/model';
 import { PartyEntity } from './entities/party.entity';
 import { UpdatePartyDto } from './dto/update-party.dto';
+import { EntitlementDuration } from '@/types/enums/entitlement-duration.enum';
+import { RevenuecatService } from '@/revenuecat/revenuecat.service';
+import { Entitlement } from '@/types/enums/entitlement.enum';
+import { ConfigService } from '@nestjs/config';
+import { AppConfig } from '@/types/interfaces/appConfig';
 
 @Injectable()
 export class PartiesService {
   constructor(
     private readonly partyRepository: PartyRepository,
     private readonly memberRepository: MemberRepository,
+    private readonly revenuecatService: RevenuecatService,
+    private readonly configService: ConfigService<AppConfig, true>,
   ) {}
+
+  private async calculateEntitlementDuration(
+    userId: string,
+    partyName: string,
+  ): Promise<EntitlementDuration | undefined> {
+    const adminUsers =
+      this.configService.get<AppConfig['adminUsers']>('adminUsers');
+    const codes = this.configService.get<AppConfig['codes']>('codes');
+    if (adminUsers?.includes(userId)) {
+      console.info(`admin user ${userId}`);
+      // Admin give entitlement based on party name
+      const { lifetime, oneYear } = codes || {};
+      const upperPartyName = partyName.toUpperCase();
+      if (lifetime?.some((code) => upperPartyName.includes(code))) {
+        return EntitlementDuration.LIFETIME;
+      }
+      if (oneYear?.some((code) => upperPartyName.includes(code))) {
+        return EntitlementDuration.ONE_YEAR;
+      }
+      return EntitlementDuration.ONE_MONTH;
+    }
+
+    const hasPlus = await this.revenuecatService
+      .hasEntitlement(userId, Entitlement.PLUS)
+      .catch((e) => {
+        console.error(e);
+        return false;
+      });
+    if (hasPlus) {
+      console.info(`user ${userId} has plus`);
+      // If creator has Plus, grant Plus to anyone joining the party
+      return EntitlementDuration.ONE_MONTH;
+    }
+
+    return undefined;
+  }
 
   async create(
     { appId, partyName, memberNickname, maxSize }: CreatePartyDto,
     createdBy: string,
   ): Promise<PartyDto> {
+    // Entitlement given to members joining the party
+    const entitlementDuration = await this.calculateEntitlementDuration(
+      createdBy,
+      partyName,
+    ).catch((e) => {
+      console.error(e);
+      return undefined;
+    });
+    if (entitlementDuration) {
+      console.info(
+        `new party will have entitlementDuration ${entitlementDuration}`,
+      );
+    }
+
     const party = await this.partyRepository.insert({
       appId,
       partyName,
       createdBy,
       maxSize,
+      entitlementDuration,
     });
 
     // Creator automatically becomes a member

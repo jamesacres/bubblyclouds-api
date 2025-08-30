@@ -3,6 +3,12 @@ import { PartyDto } from './party.dto';
 import { CreateMemberDto } from '@/members/dto/create-member.dto';
 
 export class CreatePartyDto extends IntersectionType(
-  OmitType(PartyDto, ['partyId', 'createdBy', 'createdAt', 'updatedAt']),
+  OmitType(PartyDto, [
+    'partyId',
+    'createdBy',
+    'createdAt',
+    'updatedAt',
+    'entitlementDuration',
+  ]),
   OmitType(CreateMemberDto, ['inviteId']),
 ) {}

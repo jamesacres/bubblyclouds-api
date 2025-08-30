@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AccountModule } from './account/account.module';
 import { AgentModule } from './agent/agent.module';
 import { fetchAppConfig } from './utils/fetchAppConfig';
+import { RevenuecatModule } from './revenuecat/revenuecat.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { fetchAppConfig } from './utils/fetchAppConfig';
       tableName: process.env.API_TABLE || 'Api',
     }),
     AgentModule,
+    RevenuecatModule,
   ],
   controllers: [AppController],
   providers: [

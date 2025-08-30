@@ -1,4 +1,9 @@
 import { AppConfig } from '@/types/interfaces/appConfig';
+import {
+  AppConfigDataClient,
+  GetLatestConfigurationCommand,
+  StartConfigurationSessionCommand,
+} from '@aws-sdk/client-appconfigdata';
 
 let appConfig: AppConfig;
 
@@ -34,8 +39,37 @@ export const fetchAppConfig = async (): Promise<AppConfig> => {
         }
         return overide(response);
       });
+    } else if (
+      process.env.APP_CONFIG_APPLICATION_ID &&
+      process.env.APP_CONFIG_ENVIRONMENT_ID &&
+      process.env.APP_CONFIG_CONFIGURATION_ID
+    ) {
+      // Running without lambda but have app config
+      const client = new AppConfigDataClient({ region: 'eu-west-2' });
+      const configurationToken = (
+        await client.send(
+          new StartConfigurationSessionCommand({
+            ApplicationIdentifier: process.env.APP_CONFIG_APPLICATION_ID,
+            EnvironmentIdentifier: process.env.APP_CONFIG_ENVIRONMENT_ID,
+            ConfigurationProfileIdentifier:
+              process.env.APP_CONFIG_CONFIGURATION_ID,
+          }),
+        )
+      ).InitialConfigurationToken;
+      const response = await client.send(
+        new GetLatestConfigurationCommand({
+          ConfigurationToken: configurationToken,
+        }),
+      );
+      appConfig = overide(
+        response.Configuration
+          ? (JSON.parse(
+              new TextDecoder().decode(response.Configuration),
+            ) as AppConfig)
+          : undefined,
+      );
     } else {
-      // Running without lambda, use process.env overrides
+      // Running without lambda or app config, use process.env overrides
       console.warn('Skipping app config, using overrides');
       appConfig = overide(undefined);
     }

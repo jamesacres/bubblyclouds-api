@@ -91,6 +91,7 @@ export class InvitesService {
       description: invite.description,
       sessionId: invite.sessionId,
       redirectUri: invite.redirectUri,
+      entitlementDuration: resource.entitlementDuration,
     };
   }
 }
