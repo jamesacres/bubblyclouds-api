@@ -102,10 +102,14 @@ export async function readManifest(
 
     const response = await s3Client.send(getCommand);
     const manifestContent = await streamToString(response.Body as Readable);
-    const manifest = JSON.parse(manifestContent);
 
-    // Extract data file keys from manifest
-    const dataFiles = manifest.dataFileS3Keys || [];
+    // manifest-files.json is NDJSON: each line is a JSON object with a dataFileS3Key property
+    const dataFiles = manifestContent
+      .split("\n")
+      .filter((line) => line.trim())
+      .map((line) => JSON.parse(line))
+      .map((entry: { dataFileS3Key: string }) => entry.dataFileS3Key)
+      .filter(Boolean);
 
     console.log("Read manifest successfully", {
       manifestKey,

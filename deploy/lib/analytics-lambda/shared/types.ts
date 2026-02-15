@@ -1,8 +1,8 @@
 export interface DynamoDBItem {
   modelId: { S: string };
   owner: { S: string };
-  updatedAt?: { N: string };
-  createdAt?: { N: string };
+  updatedAt?: { S: string };
+  createdAt?: { S: string };
 }
 
 export interface DailyMetrics {
