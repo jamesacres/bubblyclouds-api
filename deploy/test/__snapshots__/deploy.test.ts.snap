@@ -42,7 +42,7 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "4534902e994a2b37e9e99af20a65a1ab5c9698148bf791163b6f5b278d4bf05c.zip",
+          "S3Key": "9a73ef8ff1e73759ce676e2fd2521661e577cc6d296d63364b195c9ba34fb0f8.zip",
         },
         "Environment": {
           "Variables": {
@@ -53,7 +53,7 @@ exports[`Api Stack 1`] = `
             "EXPORT_BUCKET": {
               "Ref": "ExportBucket4E99310E",
             },
-            "S3_PREFIX": "exports",
+            "S3_PREFIX": "exports/",
           },
         },
         "Handler": "index.handler",
@@ -276,6 +276,7 @@ exports[`Api Stack 1`] = `
             "AttributeType": "S",
           },
         ],
+        "DeletionProtectionEnabled": true,
         "KeySchema": [
           {
             "AttributeName": "date",
@@ -286,6 +287,9 @@ exports[`Api Stack 1`] = `
             "KeyType": "RANGE",
           },
         ],
+        "PointInTimeRecoverySpecification": {
+          "PointInTimeRecoveryEnabled": false,
+        },
         "ProvisionedThroughput": {
           "ReadCapacityUnits": 1,
           "WriteCapacityUnits": 1,
@@ -1085,7 +1089,7 @@ exports[`Api Stack 1`] = `
             "EXPORT_BUCKET": {
               "Ref": "ExportBucket4E99310E",
             },
-            "S3_PREFIX": "exports",
+            "S3_PREFIX": "exports/",
             "TABLE_NAME": {
               "Fn::GetAtt": [
                 "ApiTable21517941",
