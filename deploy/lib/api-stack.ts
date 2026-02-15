@@ -98,7 +98,7 @@ export class ApiStack extends Stack {
     new Rule(this, 'AggregatorLambdaSchedule', {
       schedule: Schedule.cron({
         minute: '30',
-        hour: '2',
+        hour: '3',
         day: '*',
         month: '*',
         year: '*',

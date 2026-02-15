@@ -29,7 +29,7 @@ function validateEnvironment(): Environment {
 
 function buildExportParams(event: ExportRequest, env: Environment) {
   const timestamp = Date.now();
-  const s3Prefix = `${env.S3_PREFIX}/${timestamp}/`;
+  const s3Prefix = `${env.S3_PREFIX}${timestamp}/`;
 
   const params: {
     TableArn: string;

@@ -157,9 +157,13 @@ export async function readDataFile(
     for (const line of lines) {
       try {
         const parsed = JSON.parse(line);
-        // DynamoDB export format wraps items in an "Item" property
-        const item = parsed.Item || parsed;
-        items.push(item);
+        // INCREMENTAL_EXPORT wraps items in NewImage/OldImage; FULL_EXPORT uses Item.
+        // For incremental exports, use NewImage (the post-change state).
+        // Skip records that only have OldImage (deletes — no current state to aggregate).
+        const item = parsed.NewImage ?? parsed.Item ?? null;
+        if (item) {
+          items.push(item);
+        }
       } catch (parseError) {
         console.warn("Failed to parse line in data file", {
           dataFileKey,
