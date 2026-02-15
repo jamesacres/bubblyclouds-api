@@ -94,7 +94,7 @@ export class ApiStack extends Stack {
       ],
     });
 
-    // EventBridge rule for Aggregator Lambda - triggers at 2:30 AM UTC daily
+    // EventBridge rule for Aggregator Lambda - triggers at 3:30 AM UTC daily
     new Rule(this, 'AggregatorLambdaSchedule', {
       schedule: Schedule.cron({
         minute: '30',

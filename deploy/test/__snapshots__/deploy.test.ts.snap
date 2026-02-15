@@ -42,7 +42,7 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "9a73ef8ff1e73759ce676e2fd2521661e577cc6d296d63364b195c9ba34fb0f8.zip",
+          "S3Key": "3e0254305bc780e8fdaba66390e468bc5b09264dfdead513c2b4daa341779eb3.zip",
         },
         "Environment": {
           "Variables": {
@@ -1081,7 +1081,7 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "b8d7e2edcd21cf79436a4fa53dc4fb0e77b3076b113a3ccada0eb1dd4e668359.zip",
+          "S3Key": "94d02d8593b973a8fbc6d45b79452fee05436fc54066cf16078cbcbc31abc20e.zip",
         },
         "Environment": {
           "Variables": {
