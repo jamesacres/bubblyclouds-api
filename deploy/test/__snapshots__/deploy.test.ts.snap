@@ -34,6 +34,270 @@ exports[`Api Stack 1`] = `
     },
   },
   "Resources": {
+    "AggregatorLambda836C2B04": {
+      "DependsOn": [
+        "AggregatorLambdaServiceRoleDefaultPolicyEBBDE8D9",
+        "AggregatorLambdaServiceRoleC12E8DC5",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
+          "S3Key": "4534902e994a2b37e9e99af20a65a1ab5c9698148bf791163b6f5b278d4bf05c.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "ANALYTICS_TABLE": {
+              "Ref": "AnalyticsTable3F84C304",
+            },
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "EXPORT_BUCKET": {
+              "Ref": "ExportBucket4E99310E",
+            },
+            "S3_PREFIX": "exports",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 256,
+        "Role": {
+          "Fn::GetAtt": [
+            "AggregatorLambdaServiceRoleC12E8DC5",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AggregatorLambdaLogRetentionDB4563F6": {
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "AggregatorLambda836C2B04",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 7,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::LogRetention",
+    },
+    "AggregatorLambdaScheduleA1F0F66B": {
+      "Properties": {
+        "ScheduleExpression": "cron(30 2 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "AggregatorLambda836C2B04",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"mode":"incremental"}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "AggregatorLambdaScheduleAllowEventRuleApiStackAggregatorLambda4BB9388D4C88472B": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AggregatorLambda836C2B04",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "AggregatorLambdaScheduleA1F0F66B",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "AggregatorLambdaServiceRoleC12E8DC5": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AggregatorLambdaServiceRoleDefaultPolicyEBBDE8D9": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ExportBucket4E99310E",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ExportBucket4E99310E",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "cloudwatch:PutMetricData",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+            {
+              "Action": [
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "AnalyticsTable3F84C304",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "AggregatorLambdaServiceRoleDefaultPolicyEBBDE8D9",
+        "Roles": [
+          {
+            "Ref": "AggregatorLambdaServiceRoleC12E8DC5",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "AnalyticsDashboardF810556A": {
+      "Properties": {
+        "DashboardBody": {
+          "Fn::Join": [
+            "",
+            [
+              "{"widgets":[{"type":"metric","width":12,"height":6,"x":0,"y":0,"properties":{"view":"timeSeries","title":"Active Users by App","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["BubblyClouds/Analytics","ActiveUsers",{"period":86400,"stat":"Sum"}]],"yAxis":{"left":{"label":"Users","showUnits":false}}}},{"type":"metric","width":12,"height":6,"x":12,"y":0,"properties":{"view":"timeSeries","title":"Games Played by App","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["BubblyClouds/Analytics","GamesPlayed",{"period":86400,"stat":"Sum"}]],"yAxis":{"left":{"label":"Games","showUnits":false}}}},{"type":"metric","width":12,"height":6,"x":0,"y":6,"properties":{"view":"timeSeries","title":"Parties Created by App","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["BubblyClouds/Analytics","PartiesCreated",{"period":86400,"stat":"Sum"}]],"yAxis":{"left":{"label":"Parties","showUnits":false}}}},{"type":"metric","width":12,"height":6,"x":12,"y":6,"properties":{"view":"timeSeries","title":"Parties Joined by App","region":"",
+              {
+                "Ref": "AWS::Region",
+              },
+              "","metrics":[["BubblyClouds/Analytics","PartiesJoined",{"period":86400,"stat":"Sum"}]],"yAxis":{"left":{"label":"Joins","showUnits":false}}}}]}",
+            ],
+          ],
+        },
+        "DashboardName": "BubblyClouds-Analytics",
+      },
+      "Type": "AWS::CloudWatch::Dashboard",
+    },
+    "AnalyticsTable3F84C304": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "date",
+            "AttributeType": "S",
+          },
+          {
+            "AttributeName": "app",
+            "AttributeType": "S",
+          },
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "date",
+            "KeyType": "HASH",
+          },
+          {
+            "AttributeName": "app",
+            "KeyType": "RANGE",
+          },
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 1,
+          "WriteCapacityUnits": 1,
+        },
+        "TimeToLiveSpecification": {
+          "AttributeName": "expiresAt",
+          "Enabled": true,
+        },
+      },
+      "Type": "AWS::DynamoDB::Table",
+      "UpdateReplacePolicy": "Retain",
+    },
     "ApiAppConfigApplication": {
       "Properties": {
         "Name": "mockapplicationname",
@@ -646,8 +910,8 @@ exports[`Api Stack 1`] = `
           "PointInTimeRecoveryEnabled": true,
         },
         "ProvisionedThroughput": {
-          "ReadCapacityUnits": 5,
-          "WriteCapacityUnits": 5,
+          "ReadCapacityUnits": 10,
+          "WriteCapacityUnits": 10,
         },
         "TimeToLiveSpecification": {
           "AttributeName": "expiresAt",
@@ -656,6 +920,353 @@ exports[`Api Stack 1`] = `
       },
       "Type": "AWS::DynamoDB::Table",
       "UpdateReplacePolicy": "Retain",
+    },
+    "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+      "DependsOn": [
+        "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
+          "S3Key": "b7f33614a69548d6bafe224d751a7ef238cde19097415e553fe8b63a4c8fd8a6.zip",
+        },
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Lambda function for auto-deleting objects in ",
+              {
+                "Ref": "ExportBucket4E99310E",
+              },
+              " S3 bucket.",
+            ],
+          ],
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ExportBucket4E99310E": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "LifecycleConfiguration": {
+          "Rules": [
+            {
+              "ExpirationInDays": 1,
+              "Status": "Enabled",
+            },
+          ],
+        },
+        "Tags": [
+          {
+            "Key": "aws-cdk:auto-delete-objects",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "ExportBucketAutoDeleteObjectsCustomResourceA72AB44A": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "ExportBucketPolicyA383B5FF",
+      ],
+      "Properties": {
+        "BucketName": {
+          "Ref": "ExportBucket4E99310E",
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::S3AutoDeleteObjects",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "ExportBucketPolicyA383B5FF": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "ExportBucket4E99310E",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:PutBucketPolicy",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+                    "Arn",
+                  ],
+                },
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ExportBucket4E99310E",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ExportBucket4E99310E",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "ExportLambdaDBBFE402": {
+      "DependsOn": [
+        "ExportLambdaServiceRoleDefaultPolicy9F73939E",
+        "ExportLambdaServiceRoleB1A666BB",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
+          "S3Key": "b8d7e2edcd21cf79436a4fa53dc4fb0e77b3076b113a3ccada0eb1dd4e668359.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "EXPORT_BUCKET": {
+              "Ref": "ExportBucket4E99310E",
+            },
+            "S3_PREFIX": "exports",
+            "TABLE_NAME": {
+              "Fn::GetAtt": [
+                "ApiTable21517941",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "ExportLambdaServiceRoleB1A666BB",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 30,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ExportLambdaLogRetentionD31FEEC8": {
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/lambda/",
+              {
+                "Ref": "ExportLambdaDBBFE402",
+              },
+            ],
+          ],
+        },
+        "RetentionInDays": 7,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::LogRetention",
+    },
+    "ExportLambdaScheduleAllowEventRuleApiStackExportLambdaEA1A54C2720B3509": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ExportLambdaDBBFE402",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "ExportLambdaScheduleC849ABB3",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "ExportLambdaScheduleC849ABB3": {
+      "Properties": {
+        "ScheduleExpression": "cron(0 2 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "ExportLambdaDBBFE402",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{"mode":"incremental"}",
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "ExportLambdaServiceRoleB1A666BB": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ExportLambdaServiceRoleDefaultPolicy9F73939E": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "dynamodb:ExportTableToPointInTime",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "ApiTable21517941",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": [
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
+                "s3:Abort*",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "ExportBucket4E99310E",
+                        "Arn",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+            {
+              "Action": "s3:AbortMultipartUpload",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "ExportBucket4E99310E",
+                        "Arn",
+                      ],
+                    },
+                    "/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ExportLambdaServiceRoleDefaultPolicy9F73939E",
+        "Roles": [
+          {
+            "Ref": "ExportLambdaServiceRoleB1A666BB",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
       "DependsOn": [
@@ -733,6 +1344,343 @@ exports[`Api Stack 1`] = `
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "SudokuApiConnection254817E5": {
+      "Properties": {
+        "AuthParameters": {
+          "BasicAuthParameters": {
+            "Password": "mockPassword",
+            "Username": "mockUsername",
+          },
+        },
+        "AuthorizationType": "BASIC",
+        "Description": "Connection for Sudoku API calls",
+      },
+      "Type": "AWS::Events::Connection",
+    },
+    "SudokuApiDestinationbookOftheMonthApiDestination2F41F45D": {
+      "Properties": {
+        "ConnectionArn": {
+          "Fn::GetAtt": [
+            "SudokuApiConnection254817E5",
+            "Arn",
+          ],
+        },
+        "Description": "API destination for book of the month sudoku",
+        "HttpMethod": "GET",
+        "InvocationEndpoint": "https://mocksubdomain.mockdomain.test/sudoku/bookOfTheMonth?isNextMonth=true",
+      },
+      "Type": "AWS::Events::ApiDestination",
+    },
+    "SudokuApiDestinationbookOftheMonthEventsRoleDefaultPolicy599574CA": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "events:InvokeApiDestination",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "SudokuApiDestinationbookOftheMonthApiDestination2F41F45D",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SudokuApiDestinationbookOftheMonthEventsRoleDefaultPolicy599574CA",
+        "Roles": [
+          {
+            "Ref": "SudokuApiDestinationbookOftheMonthEventsRoleFF674C85",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SudokuApiDestinationbookOftheMonthEventsRoleFF674C85": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SudokuApiDestinationeasyApiDestinationA4DD00E5": {
+      "Properties": {
+        "ConnectionArn": {
+          "Fn::GetAtt": [
+            "SudokuApiConnection254817E5",
+            "Arn",
+          ],
+        },
+        "Description": "API destination for easy sudoku",
+        "HttpMethod": "GET",
+        "InvocationEndpoint": "https://mocksubdomain.mockdomain.test/sudoku/ofTheDay?difficulty=easy&isTomorrow=true",
+      },
+      "Type": "AWS::Events::ApiDestination",
+    },
+    "SudokuApiDestinationeasyEventsRoleDefaultPolicyD984F23E": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "events:InvokeApiDestination",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "SudokuApiDestinationeasyApiDestinationA4DD00E5",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SudokuApiDestinationeasyEventsRoleDefaultPolicyD984F23E",
+        "Roles": [
+          {
+            "Ref": "SudokuApiDestinationeasyEventsRoleF2E3F22E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SudokuApiDestinationeasyEventsRoleF2E3F22E": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SudokuApiDestinationintermediateApiDestinationBD334BAF": {
+      "Properties": {
+        "ConnectionArn": {
+          "Fn::GetAtt": [
+            "SudokuApiConnection254817E5",
+            "Arn",
+          ],
+        },
+        "Description": "API destination for intermediate sudoku",
+        "HttpMethod": "GET",
+        "InvocationEndpoint": "https://mocksubdomain.mockdomain.test/sudoku/ofTheDay?difficulty=intermediate&isTomorrow=true",
+      },
+      "Type": "AWS::Events::ApiDestination",
+    },
+    "SudokuApiDestinationintermediateEventsRoleDefaultPolicy185CBAD4": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "events:InvokeApiDestination",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "SudokuApiDestinationintermediateApiDestinationBD334BAF",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SudokuApiDestinationintermediateEventsRoleDefaultPolicy185CBAD4",
+        "Roles": [
+          {
+            "Ref": "SudokuApiDestinationintermediateEventsRoleE037E346",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SudokuApiDestinationintermediateEventsRoleE037E346": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SudokuApiDestinationsimpleApiDestination37FCD433": {
+      "Properties": {
+        "ConnectionArn": {
+          "Fn::GetAtt": [
+            "SudokuApiConnection254817E5",
+            "Arn",
+          ],
+        },
+        "Description": "API destination for simple sudoku",
+        "HttpMethod": "GET",
+        "InvocationEndpoint": "https://mocksubdomain.mockdomain.test/sudoku/ofTheDay?difficulty=simple&isTomorrow=true",
+      },
+      "Type": "AWS::Events::ApiDestination",
+    },
+    "SudokuApiDestinationsimpleEventsRoleDefaultPolicy0AF7692E": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "events:InvokeApiDestination",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "SudokuApiDestinationsimpleApiDestination37FCD433",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SudokuApiDestinationsimpleEventsRoleDefaultPolicy0AF7692E",
+        "Roles": [
+          {
+            "Ref": "SudokuApiDestinationsimpleEventsRoleE5E09199",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SudokuApiDestinationsimpleEventsRoleE5E09199": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SudokuCronJobbookOfTheMonthCD9D0C2E": {
+      "Properties": {
+        "ScheduleExpression": "cron(04 22 27 * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "SudokuApiDestinationbookOftheMonthApiDestination2F41F45D",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "SudokuApiDestinationbookOftheMonthEventsRoleFF674C85",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "SudokuCronJobeasy852A564A": {
+      "Properties": {
+        "ScheduleExpression": "cron(02 22 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "SudokuApiDestinationeasyApiDestinationA4DD00E5",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "SudokuApiDestinationeasyEventsRoleF2E3F22E",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "SudokuCronJobintermediate144B25DE": {
+      "Properties": {
+        "ScheduleExpression": "cron(03 22 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "SudokuApiDestinationintermediateApiDestinationBD334BAF",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "SudokuApiDestinationintermediateEventsRoleE037E346",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "SudokuCronJobsimple31C49EFD": {
+      "Properties": {
+        "ScheduleExpression": "cron(01 22 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "SudokuApiDestinationsimpleApiDestination37FCD433",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "SudokuApiDestinationsimpleEventsRoleE5E09199",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
     },
   },
   "Rules": {

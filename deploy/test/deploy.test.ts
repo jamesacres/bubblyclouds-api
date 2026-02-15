@@ -16,6 +16,10 @@ test('Api Stack', () => {
       applicationName: 'mockapplicationname',
       environmentName: 'mockenvironmentname',
     },
+    cron: {
+      username: 'mockUsername',
+      password: 'mockPassword',
+    }
   });
   const template = Template.fromStack(apiStack);
   const json = template.toJSON();
