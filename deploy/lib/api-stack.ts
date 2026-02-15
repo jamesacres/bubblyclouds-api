@@ -13,7 +13,7 @@ import {
   SecurityPolicy,
 } from 'aws-cdk-lib/aws-apigateway';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { Dashboard, GraphWidget, Metric } from 'aws-cdk-lib/aws-cloudwatch';
+import { Dashboard, GraphWidget, MathExpression, Metric } from 'aws-cdk-lib/aws-cloudwatch';
 import { AttributeType, ProjectionType, Table } from 'aws-cdk-lib/aws-dynamodb';
 import {
   Rule,
@@ -177,7 +177,9 @@ export class ApiStack extends Stack {
     const analyticsTable = new Table(this, 'AnalyticsTable', {
       partitionKey: { name: 'date', type: AttributeType.STRING },
       sortKey: { name: 'app', type: AttributeType.STRING },
+      pointInTimeRecovery: false,
       timeToLiveAttribute: 'expiresAt',
+      deletionProtection: true,
       readCapacity: 1,
       writeCapacity: 1,
     });
@@ -378,7 +380,7 @@ export class ApiStack extends Stack {
       environment: {
         TABLE_NAME: table.tableArn,
         EXPORT_BUCKET: exportBucket.bucketName,
-        S3_PREFIX: 'exports',
+        S3_PREFIX: 'exports/',
       },
     });
 
@@ -413,7 +415,7 @@ export class ApiStack extends Stack {
       environment: {
         EXPORT_BUCKET: exportBucket.bucketName,
         ANALYTICS_TABLE: analyticsTable.tableName,
-        S3_PREFIX: 'exports',
+        S3_PREFIX: 'exports/',
       },
     });
 
@@ -440,18 +442,15 @@ export class ApiStack extends Stack {
     });
 
     // Create widget for ActiveUsers metric with SEARCH expression
-    // Using wildcard dimension to auto-discover all App values
+    // Using SEARCH to auto-discover all App dimension values
     const activeUsersWidget = new GraphWidget({
       title: 'Active Users by App',
       width: 12,
       height: 6,
       left: [
-        new Metric({
-          namespace: 'BubblyClouds/Analytics',
-          metricName: 'ActiveUsers',
-          statistic: 'Sum',
+        new MathExpression({
+          expression: 'SEARCH(\'{BubblyClouds/Analytics,App} MetricName="ActiveUsers"\', \'Sum\', 86400)',
           period: Duration.days(1),
-          region: 'eu-west-2',
         }),
       ],
       leftYAxis: {
@@ -466,12 +465,9 @@ export class ApiStack extends Stack {
       width: 12,
       height: 6,
       left: [
-        new Metric({
-          namespace: 'BubblyClouds/Analytics',
-          metricName: 'GamesPlayed',
-          statistic: 'Sum',
+        new MathExpression({
+          expression: 'SEARCH(\'{BubblyClouds/Analytics,App} MetricName="GamesPlayed"\', \'Sum\', 86400)',
           period: Duration.days(1),
-          region: 'eu-west-2',
         }),
       ],
       leftYAxis: {
@@ -486,12 +482,9 @@ export class ApiStack extends Stack {
       width: 12,
       height: 6,
       left: [
-        new Metric({
-          namespace: 'BubblyClouds/Analytics',
-          metricName: 'PartiesCreated',
-          statistic: 'Sum',
+        new MathExpression({
+          expression: 'SEARCH(\'{BubblyClouds/Analytics,App} MetricName="PartiesCreated"\', \'Sum\', 86400)',
           period: Duration.days(1),
-          region: 'eu-west-2',
         }),
       ],
       leftYAxis: {
@@ -506,12 +499,9 @@ export class ApiStack extends Stack {
       width: 12,
       height: 6,
       left: [
-        new Metric({
-          namespace: 'BubblyClouds/Analytics',
-          metricName: 'PartiesJoined',
-          statistic: 'Sum',
+        new MathExpression({
+          expression: 'SEARCH(\'{BubblyClouds/Analytics,App} MetricName="PartiesJoined"\', \'Sum\', 86400)',
           period: Duration.days(1),
-          region: 'eu-west-2',
         }),
       ],
       leftYAxis: {

@@ -34,7 +34,9 @@ export class MetricsAggregator {
         return;
       }
 
-      const timestamp = new Date(timestampStr);
+      // Convert Unix epoch seconds to milliseconds for Date constructor
+      const timestampSeconds = parseInt(timestampStr, 10);
+      const timestamp = new Date(timestampSeconds * 1000);
       const date = formatDate(timestamp);
 
       // Check if date should be included based on mode

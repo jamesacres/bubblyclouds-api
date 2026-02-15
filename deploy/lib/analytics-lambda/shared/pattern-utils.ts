@@ -52,7 +52,7 @@ export function extractTimestamp(item: DynamoDBItem): string | null {
   const field = getTimestampField(recordType);
   const timestamp = item[field];
   
-  return timestamp?.S ?? null;
+  return timestamp?.N ?? null;
 }
 
 export function matchesPattern(

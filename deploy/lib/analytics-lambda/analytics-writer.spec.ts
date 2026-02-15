@@ -81,7 +81,8 @@ describe("analytics-writer", () => {
       const record = buildAnalyticsRecord(date, app, metrics);
 
       // Verify empty collections are handled correctly
-      expect(record.activeUserIds.SS).toEqual([]);
+      // activeUserIds should be omitted when empty (DynamoDB rejects empty String Sets)
+      expect(record.activeUserIds).toBeUndefined();
       expect(record.gamesPerUser.M).toEqual({});
       expect(record.partiesCreatedPerUser.M).toEqual({});
       expect(record.partiesJoined).toEqual({ N: "0" });

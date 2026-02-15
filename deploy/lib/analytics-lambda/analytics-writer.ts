@@ -44,10 +44,9 @@ export function buildAnalyticsRecord(
     partiesCreatedPerUserMap[userId] = { N: count.toString() };
   }
 
-  return {
+  const record: Record<string, AttributeValue> = {
     date: { S: date },
     app: { S: app },
-    activeUserIds: { SS: Array.from(metrics.activeUserIds) },
     gamesPerUser: { M: gamesPerUserMap },
     partiesCreatedPerUser: { M: partiesCreatedPerUserMap },
     partiesJoined: { N: metrics.partiesJoined.toString() },
@@ -61,6 +60,13 @@ export function buildAnalyticsRecord(
     },
     expiresAt: { N: expiresAt.toString() },
   };
+
+  // Only include activeUserIds if non-empty (DynamoDB rejects empty String Sets)
+  if (metrics.activeUserIds.size > 0) {
+    record.activeUserIds = { SS: Array.from(metrics.activeUserIds) };
+  }
+
+  return record;
 }
 
 /**
