@@ -11,6 +11,12 @@
       "sourceType": "github",
       "computedHash": "cf81f4523a2fd3017590cf2792fe305e4375d2f75d22037b92f05852e22feae2"
     },
+    "data_analysis": {
+      "source": "artificialanalysis/stirrup",
+      "sourceType": "github",
+      "skillPath": "skills/data_analysis/SKILL.md",
+      "computedHash": "82311e5fa5b8e924b4b887e1d1569dababce8ea6de3d25c5e4f3eeec45a6c58b"
+    },
     "nodejs-backend-patterns": {
       "source": "wshobson/agents",
       "sourceType": "github",
