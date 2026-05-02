@@ -473,18 +473,21 @@ for mode, label in MODE_LABELS.items():
             pl.col("user_id").filter(~pl.col("is_paid")).n_unique().alias("free_users"),
             pl.col("puzzle_key").n_unique().alias("unique_puzzles"),
             pl.col("is_completed").sum().alias("completed"),
-            pl.col("total_seconds").filter(pl.col("total_seconds") > 60).median().alias("median_seconds"),
-            pl.col("total_seconds").filter(pl.col("total_seconds") > 60).mean().alias("mean_seconds"),
-            pl.col("total_seconds").filter(pl.col("is_completed")).median().alias("median_completed_seconds"),
+            pl.col("total_seconds").filter(pl.col("is_completed") & (pl.col("total_seconds") > 60)).median().alias("median_completed_seconds"),
+            pl.col("total_seconds").filter(pl.col("is_completed") & (pl.col("total_seconds") > 60)).min().alias("min_completed_seconds"),
+            pl.col("total_seconds").filter(pl.col("is_completed") & (pl.col("total_seconds") > 60)).max().alias("max_completed_seconds"),
         ])
         .sort("diff_sort")
     )
 
+    def fmt(s):
+        if s is None:
+            return "—"
+        s = int(s)
+        return f"{s//60}m {s%60}s"
+
     table = []
     for row in diffs.iter_rows(named=True):
-        med = row["median_seconds"]
-        avg = row["mean_seconds"]
-        med_comp = row["median_completed_seconds"]
         abandoned = row["records"] - row["completed"]
         table.append([
             row["diff_label"],
@@ -492,11 +495,12 @@ for mode, label in MODE_LABELS.items():
             row["paid_users"],
             row["free_users"],
             row["completed"], abandoned,
-            f"{int(med_comp)//60}m {int(med_comp)%60}s" if med_comp else "—",
-            f"{int(med)//60}m {int(med)%60}s" if med else "—",
+            fmt(row["min_completed_seconds"]),
+            fmt(row["median_completed_seconds"]),
+            fmt(row["max_completed_seconds"]),
         ])
 
-    pt(table, ["Difficulty", "Records", "Paid Users", "Free Users", "Completed", "Abandoned", "Median Completion Time", "Median All Time"])
+    pt(table, ["Difficulty", "Records", "Paid Users", "Free Users", "Completed", "Abandoned", "Fastest", "Median", "Slowest"])
 
 # ---------------------------------------------------------------------------
 # 4. Puzzles per user per day
