@@ -234,6 +234,24 @@ with open("exports/sudoku-race-data.json") as f:
         # Canonical puzzle identifier (session_id is per-puzzle, shared across players)
         puzzle_key = session_id
 
+        # Derive wall-clock start time: prefer inProgress.start (actual play time),
+        # fall back to record createdAt (DynamoDB timestamp).
+        in_prog = timer.get("inProgress", {}).get("M", {}) if timer else {}
+        start_str = in_prog.get("start", {}).get("S", "") if in_prog else ""
+        play_hour: int | None = None
+        play_dow: int | None = None   # 0 = Monday … 6 = Sunday
+        if start_str:
+            try:
+                start_dt = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
+                play_hour = start_dt.hour
+                play_dow = start_dt.weekday()
+            except Exception:
+                pass
+        if play_hour is None and created_at:
+            dt = datetime.fromtimestamp(created_at, tz=timezone.utc)
+            play_hour = dt.hour
+            play_dow = dt.weekday()
+
         rows.append({
             "session_id": session_id,
             "puzzle_key": puzzle_key,
@@ -246,6 +264,8 @@ with open("exports/sudoku-race-data.json") as f:
             "is_completed": is_completed,
             "created_at": created_at,
             "updated_at": updated_at,
+            "play_hour": play_hour,
+            "play_dow": play_dow,
         })
 
 df = pl.DataFrame(rows)
@@ -836,10 +856,100 @@ pt(party_rows, [
 ])
 
 # ---------------------------------------------------------------------------
-# 10. Visualisations
+# 10. Dormant members — joined a party but never played
 # ---------------------------------------------------------------------------
 
-hs("10. Charts")
+hs("10. Dormant Members (joined a party, never played)")
+
+all_session_user_ids = set(df["user_id"].unique().to_list())
+all_member_user_ids  = {m["user_id"] for m in member_records if m["user_id"]}
+dormant_user_ids     = all_member_user_ids - all_session_user_ids
+
+hp(f"Total unique users who joined any party: {len(all_member_user_ids)}")
+hp(f"Of those, never played a single session: {len(dormant_user_ids)}")
+hp(f"(These people accepted an invite or joined a party but have no recorded puzzle sessions.)")
+
+# For each dormant user collect: nickname, parties they're in, party names,
+# most recent party join date (createdAt on the member record), party sizes.
+dormant_rows_data = []
+for m in member_records:
+    uid = m["user_id"]
+    if uid not in dormant_user_ids:
+        continue
+    party_id   = m["party_id"]
+    nickname   = m.get("nickname") or user_nicknames.get(uid, "—")
+    party_name = party_records.get(party_id, {}).get("party_name", "?")
+    party_size = party_member_count.get(party_id, 1)
+    joined_ts  = m.get("created_at", 0)
+    joined_dt  = datetime.fromtimestamp(joined_ts, tz=timezone.utc) if joined_ts else None
+    joined_str = joined_dt.strftime("%Y-%m-%d") if joined_dt else "—"
+    dormant_rows_data.append({
+        "uid": uid,
+        "nickname": nickname,
+        "party_id": party_id,
+        "party_name": party_name,
+        "party_size": party_size,
+        "joined_ts": joined_ts,
+        "joined_str": joined_str,
+    })
+
+# Collapse to one row per user: show their most recently joined party and
+# how many parties they belong to in total.
+from collections import defaultdict as _dd
+dormant_by_user: dict[str, list] = _dd(list)
+for r in dormant_rows_data:
+    dormant_by_user[r["uid"]].append(r)
+
+dormant_table = []
+for uid, entries in sorted(
+    dormant_by_user.items(),
+    key=lambda kv: -max(e["joined_ts"] for e in kv[1])
+):
+    latest = max(entries, key=lambda e: e["joined_ts"])
+    nickname   = latest["nickname"]
+    n_parties  = len(entries)
+    # Prefer multi-member parties to flag users whose party actually has people
+    max_size   = max(e["party_size"] for e in entries)
+    party_names = ", ".join(
+        e["party_name"] for e in sorted(entries, key=lambda e: -e["party_size"])[:3]
+    )
+    dormant_table.append([
+        nickname, uid, n_parties, max_size, latest["joined_str"], party_names,
+    ])
+
+html_section("Dormant members — full list (sorted by most recent join)", level=3)
+pt(dormant_table, [
+    "Nickname", "User ID", "Parties Joined", "Largest Party Size",
+    "Last Joined", "Party Name(s)",
+])
+
+# Summarise by how many parties they joined (signal of intent)
+html_section("Dormant members — grouped by party count", level=3)
+buckets_d: dict[str, list] = {"1 party": [], "2–3 parties": [], "4+ parties": []}
+for uid, entries in dormant_by_user.items():
+    n = len(entries)
+    if n == 1:
+        buckets_d["1 party"].append(uid)
+    elif n <= 3:
+        buckets_d["2–3 parties"].append(uid)
+    else:
+        buckets_d["4+ parties"].append(uid)
+
+bucket_table = []
+for label_b, uids_b in buckets_d.items():
+    # subset of dormant_table rows for these uids
+    max_sizes = [max(e["party_size"] for e in dormant_by_user[u]) for u in uids_b]
+    in_multi  = sum(1 for s in max_sizes if s >= 2)
+    bucket_table.append([label_b, len(uids_b), in_multi])
+pt(bucket_table, ["Group", "Dormant Users", "In a Multi-member Party"])
+
+hp("Priority for re-engagement: users in multi-member parties (party_size ≥ 2) who joined recently.")
+
+# ---------------------------------------------------------------------------
+# 11. Visualisations
+# ---------------------------------------------------------------------------
+
+hs("11. Charts")
 
 # ── helpers ────────────────────────────────────────────────────────────────
 
@@ -1072,7 +1182,7 @@ ax.set_ylabel("Total sessions")
 ax.legend()
 save(fig, "09_party_count_vs_sessions.png")
 
-# ── 10. Paid vs free users over time (cumulative new users by month) ────────
+# ── 10. Paid vs free users over time (cumulative new users by month) ──────
 
 first_session = (
     df.group_by("user_id")
@@ -1110,6 +1220,119 @@ plt.xticks(rotation=45, ha="right")
 save(fig, "10_cumulative_users_over_time.png")
 
 print(f"\n  All charts saved to {CHARTS_DIR}/")
+
+# ---------------------------------------------------------------------------
+# 11. Play timing: day of week & hour of day
+# ---------------------------------------------------------------------------
+
+DOW_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+hs("12. When People Play")
+
+# ── Day-of-week table ───────────────────────────────────────────────────────
+
+dow_df = df.filter(pl.col("play_dow").is_not_null())
+dow_table = []
+for dow in range(7):
+    sub = dow_df.filter(pl.col("play_dow") == dow)
+    n_paid = sub.filter(pl.col("is_paid"))["user_id"].n_unique()
+    n_free = sub.filter(~pl.col("is_paid"))["user_id"].n_unique()
+    n_comp = sub["is_completed"].sum()
+    n_aband = len(sub) - n_comp
+    dow_table.append([DOW_LABELS[dow], len(sub), n_paid, n_free, n_comp, n_aband])
+
+html_section("Sessions by Day of Week", level=3)
+pt(dow_table, ["Day", "Sessions", "Paid Users", "Free Users", "Completed", "Abandoned"])
+
+# ── Hour-of-day table (UTC) ─────────────────────────────────────────────────
+
+hour_df = df.filter(pl.col("play_hour").is_not_null())
+hour_table = []
+for hour in range(24):
+    sub = hour_df.filter(pl.col("play_hour") == hour)
+    if len(sub) == 0:
+        continue
+    n_comp = sub["is_completed"].sum()
+    hour_table.append([f"{hour:02d}:00", len(sub), n_comp, len(sub) - n_comp])
+
+html_section("Sessions by Hour of Day (UTC)", level=3)
+pt(hour_table, ["Hour (UTC)", "Sessions", "Completed", "Abandoned"])
+
+# ── Chart 11: Day-of-week bar, paid vs free stacked ─────────────────────────
+
+fig, ax = plt.subplots(figsize=(9, 5))
+x = np.arange(7)
+paid_dow = [
+    len(dow_df.filter((pl.col("play_dow") == d) & pl.col("is_paid")))
+    for d in range(7)
+]
+free_dow = [
+    len(dow_df.filter((pl.col("play_dow") == d) & ~pl.col("is_paid")))
+    for d in range(7)
+]
+bars_p = ax.bar(x, paid_dow, label="Paid", color=PAID_COLOR)
+bars_f = ax.bar(x, free_dow, bottom=paid_dow, label="Free", color=FREE_COLOR)
+ax.set_title("Sessions by Day of Week")
+ax.set_xticks(x)
+ax.set_xticklabels(DOW_LABELS)
+ax.set_ylabel("Sessions")
+ax.legend()
+for i, (p, f) in enumerate(zip(paid_dow, free_dow)):
+    total = p + f
+    if total:
+        ax.text(i, total + 0.5, str(total), ha="center", va="bottom", fontsize=8)
+save(fig, "11_sessions_by_day_of_week.png", "Sessions by Day of Week (paid vs free)")
+
+# ── Chart 12: Hour-of-day bar ────────────────────────────────────────────────
+
+fig, ax = plt.subplots(figsize=(12, 5))
+hours = list(range(24))
+paid_hour = [
+    len(hour_df.filter((pl.col("play_hour") == h) & pl.col("is_paid")))
+    for h in hours
+]
+free_hour = [
+    len(hour_df.filter((pl.col("play_hour") == h) & ~pl.col("is_paid")))
+    for h in hours
+]
+ax.bar(hours, paid_hour, label="Paid", color=PAID_COLOR)
+ax.bar(hours, free_hour, bottom=paid_hour, label="Free", color=FREE_COLOR)
+ax.set_title("Sessions by Hour of Day (UTC)")
+ax.set_xlabel("Hour (UTC)")
+ax.set_ylabel("Sessions")
+ax.set_xticks(hours)
+ax.set_xticklabels([f"{h:02d}" for h in hours], fontsize=8)
+ax.legend()
+save(fig, "12_sessions_by_hour.png", "Sessions by Hour of Day UTC (paid vs free)")
+
+# ── Chart 13: Heatmap — day of week × hour of day ───────────────────────────
+
+heat = np.zeros((7, 24), dtype=int)
+for row in df.filter(
+    pl.col("play_dow").is_not_null() & pl.col("play_hour").is_not_null()
+).select(["play_dow", "play_hour"]).iter_rows():
+    dow_val, hour_val = row
+    if dow_val is not None and hour_val is not None:
+        heat[int(dow_val), int(hour_val)] += 1
+
+fig, ax = plt.subplots(figsize=(14, 5))
+im = ax.imshow(heat, aspect="auto", cmap="YlOrRd", interpolation="nearest")
+ax.set_yticks(range(7))
+ax.set_yticklabels(DOW_LABELS)
+ax.set_xticks(range(24))
+ax.set_xticklabels([f"{h:02d}" for h in range(24)], fontsize=8)
+ax.set_xlabel("Hour of Day (UTC)")
+ax.set_title("Session Heatmap: Day of Week × Hour of Day (UTC)")
+plt.colorbar(im, ax=ax, label="Sessions")
+# Annotate cells with count where non-zero
+for dow_i in range(7):
+    for hour_i in range(24):
+        val = heat[dow_i, hour_i]
+        if val > 0:
+            ax.text(hour_i, dow_i, str(val), ha="center", va="center",
+                    fontsize=7, color="black" if val < heat.max() * 0.6 else "white")
+save(fig, "13_heatmap_dow_hour.png",
+     "Session heatmap by day of week and hour of day (UTC). Darker = more sessions.")
 
 write_report()
 print("\n\nDone.")
