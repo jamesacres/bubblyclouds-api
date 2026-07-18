@@ -18,9 +18,12 @@ async function bootstrap() {
   return cachedServer;
 }
 
-const handler = async (event: any, context: Context, callback: any) => {
+const handler = async (event: any, context: Context) => {
   const server = await bootstrap();
-  return server(event, context, callback);
+  // serverless-express returns a promise-based handler. The Node.js 24 Lambda
+  // runtime rejects callback-style handlers, so return the promise rather than
+  // passing a callback through.
+  return server(event, context, () => undefined);
 };
 
 module.exports.handler = handler;

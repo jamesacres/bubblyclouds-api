@@ -49,6 +49,8 @@ Swagger UI is served at `http://localhost:3000/api`.
 | Unit tests | `npm test` |
 | Unit tests (coverage, enforces thresholds) | `npm run test:cov` |
 | Start local DynamoDB | `npm run dynamodb:start` |
+| Create local DynamoDB table | `npm run dynamodb:setup` |
+| Run the deployed stack locally (SAM) | `npm run start:local` |
 | Integration tests (real DynamoDB Local) | `npm run test:integration` |
 | E2E tests (full HTTP app + DynamoDB Local) | `npm run test:e2e` |
 | Lint (auto-fix) | `npm run lint` |
@@ -58,6 +60,32 @@ Swagger UI is served at `http://localhost:3000/api`.
 
 Integration and e2e tests need DynamoDB Local — start it with
 `npm run dynamodb:start` (listens on `:8000`) in a separate terminal first.
+
+### Run the deployed stack locally with SAM
+
+`npm run start:local` runs the **actual Lambda + API Gateway** locally via
+`sam local start-api`, mirroring `../bubblyclouds-auth`. It builds the Lambda
+bundle, synthesizes the CDK stack, adapts the template for SAM, then serves the
+API on `http://localhost:3000`.
+
+Prerequisites: [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html),
+Docker, and local DynamoDB with its table created:
+
+```bash
+npm run dynamodb:start   # terminal 1 — DynamoDB Local on :8000
+npm run dynamodb:setup   # once — creates the `Api` table + ownerIndex GSI
+npm run start:local      # terminal 2 — builds, synths, and serves on :3000
+```
+
+Local config is supplied by `sam-env.json` (gitignored; copy from
+`sam-env.json.dev` and fill in the API-key username/password). Because the
+AppConfig extension layer is not available locally, `fetchAppConfig` falls back
+to the `APP_CONFIG_API_KEY_*` overrides in that file. DynamoDB is reached from
+the Lambda container via `http://host.docker.internal:8000`.
+
+> The `sam-env.json` key is the Lambda's synthesized logical id
+> (`ApiFunctionCE271BD4`). If the `ApiFunction` construct changes, the hash
+> suffix may change — update the key to match `cdk.out/ApiStack.template.json`.
 
 ## Testing
 

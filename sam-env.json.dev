@@ -1,0 +1,12 @@
+{
+  "ApiFunctionCE271BD4": {
+    "API_TABLE": "Api",
+    "API_DB_ENDPOINT": "http://host.docker.internal:8000",
+    "AWS_APPCONFIG_EXTENSION_PREFETCH_LIST": "",
+    "APP_CONFIG_API_KEY_USERNAME": "XXX",
+    "APP_CONFIG_API_KEY_PASSWORD": "XXX",
+    "AWS_ACCESS_KEY_ID": "local",
+    "AWS_SECRET_ACCESS_KEY": "local",
+    "AWS_REGION": "eu-west-2"
+  }
+}

@@ -5,6 +5,7 @@
     "test",
     "dist",
     "**/*spec.ts",
-    "deploy"
+    "deploy",
+    "scripts"
   ]
 }
