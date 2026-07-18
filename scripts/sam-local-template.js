@@ -45,8 +45,38 @@ for (const resource of Object.values(resources)) {
   }
 }
 
+// SAM's `--env-vars` only OVERRIDES variables that already exist in a function's
+// Environment.Variables block — it does not ADD new ones. So `API_DB_ENDPOINT`
+// (which is not in the synthed template) would be silently dropped, leaving the
+// AWS SDK pointed at the real DynamoDB endpoint. Seed every key from sam-env.json
+// into each function's Environment block (as an empty placeholder if absent) so
+// SAM has something to override. The real values still come from sam-env.json.
+const envVarsFile = path.join(__dirname, '..', 'sam-env.json');
+let seededKeys = [];
+if (fs.existsSync(envVarsFile)) {
+  const samEnv = JSON.parse(fs.readFileSync(envVarsFile, 'utf8'));
+  const keysByLogicalId = new Map(
+    Object.entries(samEnv).map(([id, vars]) => [id, Object.keys(vars)]),
+  );
+  for (const [logicalId, resource] of Object.entries(resources)) {
+    if (resource.Type !== 'AWS::Lambda::Function') continue;
+    const keys = keysByLogicalId.get(logicalId);
+    if (!keys) continue;
+    resource.Properties.Environment = resource.Properties.Environment || {};
+    const vars = (resource.Properties.Environment.Variables =
+      resource.Properties.Environment.Variables || {});
+    for (const key of keys) {
+      if (!(key in vars)) {
+        vars[key] = '';
+        seededKeys.push(`${logicalId}.${key}`);
+      }
+    }
+  }
+}
+
 fs.writeFileSync(dest, JSON.stringify(template, null, 2));
 console.info(
   `Wrote ${path.relative(process.cwd(), dest)} ` +
-    `(removed ${removedMocks} MOCK method(s), stripped layers from ${strippedLayers} function(s))`,
+    `(removed ${removedMocks} MOCK method(s), stripped layers from ${strippedLayers} function(s), ` +
+    `seeded ${seededKeys.length} env placeholder(s))`,
 );

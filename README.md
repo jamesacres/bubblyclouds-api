@@ -83,6 +83,13 @@ AppConfig extension layer is not available locally, `fetchAppConfig` falls back
 to the `APP_CONFIG_API_KEY_*` overrides in that file. DynamoDB is reached from
 the Lambda container via `http://host.docker.internal:8000`.
 
+`sam local`'s `--env-vars` only *overrides* variables already present in a
+function's synthesized `Environment` block — it does not *add* new ones. So
+`scripts/sam-local-template.js` seeds every `sam-env.json` key (e.g.
+`API_DB_ENDPOINT`, the local AWS creds) into the template as a placeholder;
+otherwise the SDK would silently fall back to the real DynamoDB endpoint and
+reject the local dummy credentials.
+
 > The `sam-env.json` key is the Lambda's synthesized logical id
 > (`ApiFunctionCE271BD4`). If the `ApiFunction` construct changes, the hash
 > suffix may change — update the key to match `cdk.out/ApiStack.template.json`.
