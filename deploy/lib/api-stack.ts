@@ -228,7 +228,7 @@ export class ApiStack extends Stack {
     const apiFn = new Function(this, `ApiFunction`, {
       handler: 'main.handler',
       memorySize: 512,
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_24_X,
       timeout: Duration.seconds(15),
       logRetention: RetentionDays.ONE_WEEK,
       code: Code.fromAsset('../dist'),
@@ -373,7 +373,7 @@ export class ApiStack extends Stack {
     const exportLambda = new NodejsFunction(this, 'ExportLambda', {
       entry: 'lib/analytics-lambda/export-trigger.ts',
       handler: 'handler',
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_24_X,
       memorySize: 128,
       timeout: Duration.seconds(30),
       logRetention: RetentionDays.ONE_WEEK,
@@ -408,7 +408,7 @@ export class ApiStack extends Stack {
     const aggregatorLambda = new NodejsFunction(this, 'AggregatorLambda', {
       entry: 'lib/analytics-lambda/aggregator.ts',
       handler: 'handler',
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_24_X,
       memorySize: 256,
       timeout: Duration.minutes(5),
       logRetention: RetentionDays.ONE_WEEK,

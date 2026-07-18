@@ -36,11 +36,10 @@ export class LocalMcpService {
           version: VERSION,
         },
         {
-          capabilities: {
-            prompts: {},
-            resources: {},
-            tools: {},
-          },
+          // The client only consumes tools (listTools/callTool); tools,
+          // resources and prompts are server-side capabilities and are no
+          // longer accepted in the client capabilities object.
+          capabilities: {},
         },
       );
 

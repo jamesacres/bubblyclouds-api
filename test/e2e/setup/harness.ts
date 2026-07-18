@@ -18,7 +18,6 @@ process.env.AWS_ACCESS_KEY_ID = 'local';
 process.env.AWS_SECRET_ACCESS_KEY = 'local';
 process.env.AWS_REGION = 'eu-west-2';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const express = require('express');
 
 import {

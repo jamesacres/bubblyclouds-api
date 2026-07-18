@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Api Stack 1`] = `
 {
@@ -42,14 +42,13 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "3e0254305bc780e8fdaba66390e468bc5b09264dfdead513c2b4daa341779eb3.zip",
+          "S3Key": "958624c0666bdfab1d69bdd72383f5e0b8a6c3284f862eafc9f0f5f206789b3f.zip",
         },
         "Environment": {
           "Variables": {
             "ANALYTICS_TABLE": {
               "Ref": "AnalyticsTable3F84C304",
             },
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "EXPORT_BUCKET": {
               "Ref": "ExportBucket4E99310E",
             },
@@ -64,7 +63,7 @@ exports[`Api Stack 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 300,
       },
       "Type": "AWS::Lambda::Function",
@@ -215,9 +214,6 @@ exports[`Api Stack 1`] = `
                     "AnalyticsTable3F84C304",
                     "Arn",
                   ],
-                },
-                {
-                  "Ref": "AWS::NoValue",
                 },
               ],
             },
@@ -392,7 +388,7 @@ exports[`Api Stack 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 15,
       },
       "Type": "AWS::Lambda::Function",
@@ -483,8 +479,6 @@ exports[`Api Stack 1`] = `
             {
               "Action": [
                 "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
                 "dynamodb:Query",
                 "dynamodb:GetItem",
                 "dynamodb:Scan",
@@ -494,6 +488,35 @@ exports[`Api Stack 1`] = `
                 "dynamodb:UpdateItem",
                 "dynamodb:DeleteItem",
                 "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ApiTable21517941",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ApiTable21517941",
+                          "Arn",
+                        ],
+                      },
+                      "/index/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
               ],
               "Effect": "Allow",
               "Resource": [
@@ -617,6 +640,9 @@ exports[`Api Stack 1`] = `
         "ApiGatewayANY64A155AA",
         "ApiGatewayGET25EBFEA3",
       ],
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
       "Properties": {
         "Description": "Automatically created by the RestApi construct",
         "RestApiId": {
@@ -932,7 +958,7 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "b7f33614a69548d6bafe224d751a7ef238cde19097415e553fe8b63a4c8fd8a6.zip",
+          "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip",
         },
         "Description": {
           "Fn::Join": [
@@ -954,7 +980,7 @@ exports[`Api Stack 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -1081,11 +1107,10 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "94d02d8593b973a8fbc6d45b79452fee05436fc54066cf16078cbcbc31abc20e.zip",
+          "S3Key": "db1b0cd311ae2d9713821051f24746391b435f038ad0e69c8d08196556896372.zip",
         },
         "Environment": {
           "Variables": {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "EXPORT_BUCKET": {
               "Ref": "ExportBucket4E99310E",
             },
@@ -1106,7 +1131,7 @@ exports[`Api Stack 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 30,
       },
       "Type": "AWS::Lambda::Function",
@@ -1280,7 +1305,7 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "4e26bf2d0a26f2097fb2b261f22bb51e3f6b4b52635777b1e54edbd8e2d58c35.zip",
+          "S3Key": "2819175352ad1ce0dae768e83fc328fb70fb5f10b4a8ff0ccbcb791f02b0716d.zip",
         },
         "Handler": "index.handler",
         "Role": {
@@ -1289,7 +1314,7 @@ exports[`Api Stack 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",

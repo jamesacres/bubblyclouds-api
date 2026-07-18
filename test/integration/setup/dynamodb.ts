@@ -109,8 +109,7 @@ export const clearTable = async (): Promise<void> => {
     );
 
     lastEvaluatedKey = scanResult.LastEvaluatedKey as
-      | Record<string, AttributeValue>
-      | undefined;
+      Record<string, AttributeValue> | undefined;
     const items = scanResult.Items || [];
     if (items.length === 0) {
       break;

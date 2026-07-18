@@ -24,7 +24,6 @@ jest.mock('@/revenuecat/revenuecat.service', () => ({
 }));
 
 import type { Response } from 'supertest';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const request = require('supertest');
 import { startE2E, stopE2E, bearer, clearTable } from '../setup/harness';
 
