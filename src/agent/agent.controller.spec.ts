@@ -1,20 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { AgentController } from './agent.controller';
-import { AgentService } from './agent.service';
 
 describe('AgentController', () => {
-  let controller: AgentController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AgentController],
-      providers: [AgentService],
-    }).compile();
-
-    controller = module.get<AgentController>(AgentController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('invoke delegates to the service with the request user and dto', () => {
+    const service = {
+      invoke: jest.fn().mockResolvedValue({ completion: 'hi' }),
+    };
+    const controller = new AgentController(service as never);
+    const user = { sub: 'user1' };
+    const dto = { inputText: 'hello', sessionId: 's1' };
+    controller.invoke({ user } as never, dto as never);
+    expect(service.invoke).toHaveBeenCalledWith(user, dto);
   });
 });
