@@ -86,4 +86,11 @@ describe('Invites + members (e2e)', () => {
     const userIds = members.body.map((m: { userId: string }) => m.userId);
     expect(userIds).toEqual(expect.arrayContaining(['owner-1', 'joiner-1']));
   });
+
+  it('returns 404 for an unknown invite id', async () => {
+    await request(server)
+      .get('/invites/does-not-exist')
+      .set('Authorization', bearer())
+      .expect(404);
+  });
 });

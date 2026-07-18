@@ -104,4 +104,37 @@ describe('Parties (e2e)', () => {
       listAfter.body.map((p: { partyId: string }) => p.partyId),
     ).not.toContain(partyId);
   });
+
+  it('does not let a non-owner patch or delete a party', async () => {
+    const owner = bearer({ sub: 'owner-x' });
+    const stranger = bearer({ sub: 'stranger-x' });
+
+    const created = await request(server)
+      .post('/parties')
+      .set('Authorization', owner)
+      .send({ appId: 'sudoku', partyName: 'Guarded', memberNickname: 'Owner' })
+      .expect(201);
+    const partyId = created.body.partyId;
+
+    await request(server)
+      .patch(`/parties/${partyId}?app=sudoku`)
+      .set('Authorization', stranger)
+      .send({ partyName: 'Hijacked' })
+      .expect(404);
+
+    await request(server)
+      .delete(`/parties/${partyId}?app=sudoku`)
+      .set('Authorization', stranger)
+      .expect(404);
+
+    // Owner can still see the untouched party.
+    const list = await request(server)
+      .get('/parties?app=sudoku')
+      .set('Authorization', owner)
+      .expect(200);
+    const found = list.body.find(
+      (p: { partyId: string }) => p.partyId === partyId,
+    );
+    expect(found?.partyName).toBe('Guarded');
+  });
 });
