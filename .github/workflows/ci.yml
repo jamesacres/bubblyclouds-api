@@ -65,6 +65,14 @@ jobs:
           cache: npm
           cache-dependency-path: deploy/package-lock.json
 
+      - name: Install root dependencies
+        working-directory: .
+        run: npm ci
+
+      - name: Build root app
+        working-directory: .
+        run: npm run build:nest
+
       - name: Install dependencies
         run: npm ci
 
