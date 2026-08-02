@@ -27,7 +27,7 @@ import {
 import { ApiDestination as ApiDestinationTarget, LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
@@ -158,7 +158,7 @@ export class ApiStack extends Stack {
     const table = new Table(this, 'ApiTable', {
       partitionKey: { name: 'modelId', type: AttributeType.STRING },
       sortKey: { name: 'owner', type: AttributeType.STRING },
-      pointInTimeRecovery: true,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
       timeToLiveAttribute: 'expiresAt',
       deletionProtection: true,
       readCapacity: 10,
@@ -177,7 +177,7 @@ export class ApiStack extends Stack {
     const analyticsTable = new Table(this, 'AnalyticsTable', {
       partitionKey: { name: 'date', type: AttributeType.STRING },
       sortKey: { name: 'app', type: AttributeType.STRING },
-      pointInTimeRecovery: false,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: false },
       timeToLiveAttribute: 'expiresAt',
       deletionProtection: true,
       readCapacity: 1,
@@ -230,7 +230,11 @@ export class ApiStack extends Stack {
       memorySize: 512,
       runtime: Runtime.NODEJS_24_X,
       timeout: Duration.seconds(15),
-      logRetention: RetentionDays.ONE_WEEK,
+      logGroup: new LogGroup(this, 'ApiFunctionLogGroup', {
+        logGroupName: '/aws/lambda/Api',
+        retention: RetentionDays.ONE_WEEK,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
       code: Code.fromAsset('../dist'),
       functionName: `Api`,
       environment: {
@@ -376,7 +380,10 @@ export class ApiStack extends Stack {
       runtime: Runtime.NODEJS_24_X,
       memorySize: 128,
       timeout: Duration.seconds(30),
-      logRetention: RetentionDays.ONE_WEEK,
+      logGroup: new LogGroup(this, 'ExportLambdaLogGroup', {
+        retention: RetentionDays.ONE_WEEK,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
       environment: {
         TABLE_NAME: table.tableArn,
         EXPORT_BUCKET: exportBucket.bucketName,
@@ -411,7 +418,10 @@ export class ApiStack extends Stack {
       runtime: Runtime.NODEJS_24_X,
       memorySize: 256,
       timeout: Duration.minutes(5),
-      logRetention: RetentionDays.ONE_WEEK,
+      logGroup: new LogGroup(this, 'AggregatorLambdaLogGroup', {
+        retention: RetentionDays.ONE_WEEK,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
       environment: {
         EXPORT_BUCKET: exportBucket.bucketName,
         ANALYTICS_TABLE: analyticsTable.tableName,
