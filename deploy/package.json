@@ -11,7 +11,8 @@
     "cdk": "cdk",
     "cdk:deploy": "ENV=prod cdk deploy",
     "cdk:diff": "ENV=prod cdk diff",
-    "cdk:synth": "ENV=dev cdk synth"
+    "cdk:synth": "ENV=dev cdk synth",
+    "static:sync": "./scripts/sync-static.sh"
   },
   "devDependencies": {
     "@emnapi/core": "1.11.3",

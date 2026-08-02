@@ -5,6 +5,21 @@ export enum SudokuQQWingDifficulty {
   EXPERT = 'expert',
 }
 
+/**
+ * Unblock race difficulty bands, derived from the minimum number of moves
+ * required to solve a puzzle.
+ */
+export enum UnblockRaceDifficulty {
+  /** 1-15 moves */
+  BEGINNER = 'beginner',
+  /** 16-20 moves */
+  CHALLENGING = 'challenging',
+  /** 21-30 moves */
+  HARD = 'hard',
+  /** 31+ moves */
+  EXPERT = 'expert',
+}
+
 export enum SudokuCoachPuzzleDifficulty {
   VERY_EASY = '1-very-easy',
   EASY = '2-easy',

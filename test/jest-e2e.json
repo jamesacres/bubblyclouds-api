@@ -16,6 +16,7 @@
   "moduleNameMapper": {
     "^nanoid$": "<rootDir>/test/mocks/nanoid.ts",
     "^@/lib/qqwing$": "<rootDir>/test/mocks/qqwing.ts",
+    "^@/utils/unblock-race-s3-fetcher$": "<rootDir>/test/mocks/unblock-race-s3-fetcher.ts",
     "^@/(.*)$": "<rootDir>/src/$1"
   }
 }
