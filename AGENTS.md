@@ -26,8 +26,9 @@ Rules:
 - `nanoid` is ESM-only: import it dynamically (`const { nanoid } = await import('nanoid')`).
 - Secrets come from `AppConfig` via `ConfigService` — never hard-code apiKeys,
   adminUsers, codes or the RevenueCat key.
-- Do not commit generated/vendored output: `dist/`, `coverage/`, `wasm/`,
-  `sudoku-seeds/` and `src/lib/qqwing/` are build artifacts / vendored code.
+- Do not commit `dist/` or `coverage/` (build/test output, gitignored).
+  `wasm/`, `sudoku-seeds/` and `src/lib/qqwing/` are vendored code checked
+  into git and required at runtime — never delete or gitignore them.
 - Co-locate a `*.spec.ts` with every new source file; unit coverage thresholds
   are enforced (95% statements/functions/lines, 85% branches).
 - When moving or changing files, update the co-located test files.
