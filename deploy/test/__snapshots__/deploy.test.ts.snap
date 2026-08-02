@@ -391,7 +391,7 @@ exports[`Api Stack 1`] = `
     "ApiFunctionLogGroup00D1AC73": {
       "DeletionPolicy": "Delete",
       "Properties": {
-        "LogGroupName": "/aws/lambda/Api",
+        "LogGroupName": "Api",
         "RetentionInDays": 7,
       },
       "Type": "AWS::Logs::LogGroup",
