@@ -231,7 +231,7 @@ export class ApiStack extends Stack {
       runtime: Runtime.NODEJS_24_X,
       timeout: Duration.seconds(15),
       logGroup: new LogGroup(this, 'ApiFunctionLogGroup', {
-        logGroupName: '/aws/lambda/Api',
+        logGroupName: 'Api',
         retention: RetentionDays.ONE_WEEK,
         removalPolicy: RemovalPolicy.DESTROY,
       }),
