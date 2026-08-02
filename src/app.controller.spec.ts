@@ -1,22 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 describe('AppController', () => {
-  let appController: AppController;
+  const controller = new AppController();
 
-  beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
-      providers: [AppService],
-    }).compile();
-
-    appController = app.get<AppController>(AppController);
+  it('index resolves without a body (redirect handled by decorator)', () => {
+    expect(controller.index()).toBeUndefined();
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
+  it('health returns an ok payload', () => {
+    expect(controller.health()).toEqual({ ok: true });
   });
 });

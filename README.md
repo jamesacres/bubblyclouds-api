@@ -1,73 +1,172 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Bubbly Clouds API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The API that powers Bubbly Clouds projects (starting with Sudoku). It's a
+[NestJS](https://nestjs.com/) service backed by a single **DynamoDB** table,
+built to run both as a local Express server and as an **AWS Lambda** function
+behind a serverless-express adapter. It handles auth (RS256 JWT + API keys),
+parties/members/invites, per-app session state, sudoku puzzle generation, and an
+AI agent endpoint (AWS Bedrock inline agents + a local MCP tool server).
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Architecture overview
 
-## Description
+Everything lives in a single application under `src/`, organised into NestJS
+feature modules (`parties`, `members`, `invites`, `sessions`, `sudoku`,
+`account`, `agent`, `revenuecat`) plus cross-cutting modules for auth, config
+and persistence. All data access goes through one `DynamoDBAdapter` over a
+single-table design (PK `modelId`, SK `owner`, GSI `ownerIndex`). Both the
+Express and Lambda entry points share one `build()` factory so global guards,
+pipes, filters and Swagger are configured in exactly one place.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Deployment is handled by a separate AWS CDK app in `deploy/`.
 
-## Installation
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the module hierarchy, the DynamoDB
+pattern, the repository/entity/DTO convention, and where new code should go.
 
-```bash
-$ npm install
-```
+## Quick start
 
-## Running the app
+Prerequisites:
+
+- **Node.js 24** (see `.nvmrc`)
+- **npm** (repo uses `package-lock.json` / `npm ci`)
+- **Docker** (for local DynamoDB, required by integration and e2e tests)
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install          # or: npm ci
+npm run start:dev    # watch-mode Express server on http://localhost:3000
 ```
 
-## Test
+Swagger UI is served at `http://localhost:3000/api`.
+
+## Available commands
+
+| Task | Command |
+| --- | --- |
+| Dev server (watch) | `npm run start:dev` |
+| Dev server | `npm run start` |
+| Production (from `dist/`) | `npm run start:prod` |
+| Build (NestJS) | `npm run build:nest` |
+| Build (Lambda bundle) | `npm run build:lambda` |
+| Unit tests | `npm test` |
+| Unit tests (coverage, enforces thresholds) | `npm run test:cov` |
+| Start local DynamoDB | `npm run dynamodb:start` |
+| Create local DynamoDB table | `npm run dynamodb:setup` |
+| Run the deployed stack locally (SAM) | `npm run start:local` |
+| Integration tests (real DynamoDB Local) | `npm run test:integration` |
+| E2E tests (full HTTP app + DynamoDB Local) | `npm run test:e2e` |
+| Lint (auto-fix) | `npm run lint` |
+| Lint (check only, CI) | `npm run lint:check` |
+| Type-check | `npm run typecheck` |
+| Format | `npm run format` |
+
+Integration and e2e tests need DynamoDB Local — start it with
+`npm run dynamodb:start` (listens on `:8000`) in a separate terminal first.
+
+### Run the deployed stack locally with SAM
+
+`npm run start:local` runs the **actual Lambda + API Gateway** locally via
+`sam local start-api`, mirroring `../bubblyclouds-auth`. It builds the Lambda
+bundle, synthesizes the CDK stack, adapts the template for SAM, then serves the
+API on `http://localhost:3000`.
+
+Prerequisites: [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html),
+Docker, and local DynamoDB with its table created:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run dynamodb:start   # terminal 1 — DynamoDB Local on :8000
+npm run dynamodb:setup   # once — creates the `Api` table + ownerIndex GSI
+npm run start:local      # terminal 2 — builds, synths, and serves on :3000
 ```
 
-## Support
+Local config is supplied by `sam-env.json` (gitignored; copy from
+`sam-env.json.dev` and fill in the API-key username/password). Because the
+AppConfig extension layer is not available locally, `fetchAppConfig` falls back
+to the `APP_CONFIG_API_KEY_*` overrides in that file. DynamoDB is reached from
+the Lambda container via `http://host.docker.internal:8000`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+`sam local`'s `--env-vars` only *overrides* variables already present in a
+function's synthesized `Environment` block — it does not *add* new ones. So
+`scripts/sam-local-template.js` seeds every `sam-env.json` key (e.g.
+`API_DB_ENDPOINT`, the local AWS creds) into the template as a placeholder;
+otherwise the SDK would silently fall back to the real DynamoDB endpoint and
+reject the local dummy credentials.
 
-## Stay in touch
+> The `sam-env.json` key is the Lambda's synthesized logical id
+> (`ApiFunctionCE271BD4`). If the `ApiFunction` construct changes, the hash
+> suffix may change — update the key to match `cdk.out/ApiStack.template.json`.
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Testing
 
-## License
+The suite is layered into three complementary levels:
 
-Nest is [MIT licensed](LICENSE).
+| Level | Command | Wired to | What it proves |
+| --- | --- | --- | --- |
+| **Unit** | `npm test` | Mocked dependencies | Each service / controller / repository / guard / util behaves correctly in isolation. Fast, no external services. Enforces coverage thresholds. |
+| **Integration** | `npm run test:integration` | **Real DynamoDB Local** | The data layer (repositories + `DynamoDBAdapter`) actually reads/writes DynamoDB — marshalling, the `ownerIndex` GSI, TTL/expiry, pagination and batch deletes. No HTTP, no guards. |
+| **E2E** | `npm run test:e2e` | **Full app over HTTP + DynamoDB Local** | A real HTTP client driving the whole application (`build()` → all modules, global `AuthGuard`, `ValidationPipe`, `DatePipe`, exception filter) with a real RSA-signed JWT. Proves auth → routing → validation → service → repository → DynamoDB → response end-to-end. |
+
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, build, unit (with
+coverage), integration and e2e on every push/PR, with an
+`amazon/dynamodb-local` service container, then builds and tests the `deploy/`
+CDK app. Husky runs lint + typecheck on commit, and the full suite (spinning up
+DynamoDB in Docker) on push.
+
+## Modules
+
+| Module | Responsibility |
+| --- | --- |
+| `account` | Delete a user's account and cascade-delete all owned data. |
+| `parties` | Parties (groups) — creation, listing, entitlement duration logic. |
+| `invites` | Invites to join a party. |
+| `members` | Party membership records. |
+| `sessions` | Per-app game/session state (e.g. saved sudoku games). |
+| `sudoku` | Sudoku puzzle generation (qqwing wasm) and puzzle-book seeds. |
+| `agent` | AWS Bedrock inline agent endpoint + in-memory MCP tool server. |
+| `revenuecat` | RevenueCat entitlement lookups (service only, no controller). |
+| `dynamodb` | Single-table adapter + factory (global). |
+| `guards` / `decorators` / `pipes` / `exceptionFilters` | Cross-cutting request handling. |
+| `types` / `utils` | Shared enums, interfaces and pure helpers. |
+
+## Project structure
+
+```
+.
+├── src/
+│   ├── main.ts               # Express entry point (local/server)
+│   ├── lambda.ts             # AWS Lambda handler (serverless-express)
+│   ├── app.build.ts          # shared build() factory: guards, pipes, Swagger
+│   ├── app.module.ts         # root module — wires all feature modules
+│   ├── <feature>/            # controller + service + repository + entities + dto
+│   ├── dynamodb/             # DynamoDBAdapter + factory (single-table access)
+│   ├── guards/ decorators/ pipes/ exceptionFilters/   # cross-cutting
+│   ├── config/ lib/ utils/   # config, vendored qqwing wasm, pure helpers
+│   └── types/                # enums/ and interfaces/
+├── test/
+│   ├── e2e/                  # full HTTP app tests (+ shared harness/mocks)
+│   ├── integration/          # repository/adapter tests against DynamoDB Local
+│   └── mocks/                # nanoid, qqwing test doubles
+├── deploy/                   # AWS CDK app (separate package) — infra + deploy
+├── sudoku-seeds/ wasm/       # bundled assets copied into dist/ on build
+└── docs/                     # supplementary docs (e.g. analytics-backfill)
+```
+
+## Tech stack
+
+- **Framework:** NestJS 11 (Express platform)
+- **Language:** TypeScript 5 (strict null checks, `noImplicitAny`)
+- **Data store:** AWS DynamoDB (single-table) via `@aws-sdk/lib-dynamodb`
+- **Auth:** RS256 JWT (`@nestjs/jwt`, JWKS from auth.bubblyclouds.com) + API keys
+- **AI:** AWS Bedrock inline agents + Model Context Protocol (`@modelcontextprotocol/sdk`)
+- **Docs:** Swagger / OpenAPI (`@nestjs/swagger`) at `/api`
+- **Tests:** Jest + ts-jest, Supertest (e2e), DynamoDB Local
+- **Lint/format:** ESLint (typescript-eslint) + Prettier
+- **Deployment:** AWS Lambda, provisioned by AWS CDK (`deploy/`)
+
+## Contributing
+
+1. Branch off `main`.
+2. Make your change; follow the module conventions in
+   [ARCHITECTURE.md](./ARCHITECTURE.md) and update co-located `*.spec.ts` tests.
+3. Run `npm run lint` and `npm run typecheck`.
+4. Run `npm test` (and integration/e2e if you touched persistence or wiring —
+   start DynamoDB with `npm run dynamodb:start` first).
+5. Open a PR against `main`. CI must pass; Husky enforces the same checks locally.
