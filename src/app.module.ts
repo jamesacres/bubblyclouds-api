@@ -14,6 +14,7 @@ import { AccountModule } from './account/account.module';
 import { AgentModule } from './agent/agent.module';
 import { fetchAppConfig } from './utils/fetchAppConfig';
 import { RevenuecatModule } from './revenuecat/revenuecat.module';
+import { UnblockRaceModule } from './unblockrace/unblock-race.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RevenuecatModule } from './revenuecat/revenuecat.module';
     MembersModule,
     SessionsModule,
     SudokuModule,
+    UnblockRaceModule,
     DynamoDBModule.forRoot({
       // For testing
       // docker run -p 8000:8000 -it --rm instructure/dynamo-local-admin

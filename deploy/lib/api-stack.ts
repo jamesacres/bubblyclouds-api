@@ -1,4 +1,4 @@
-import { Duration, Fn, RemovalPolicy, SecretValue, Stack, StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Fn, RemovalPolicy, SecretValue, Stack, StackProps } from 'aws-cdk-lib';
 import {
   CfnApplication,
   CfnConfigurationProfile,
@@ -53,11 +53,16 @@ export class ApiStack extends Stack {
     });
 
     const appConfig = this.appConfig(props.appConfig);
+    const staticBucket = this.createStaticBucket();
     const { api } = this.lambdas({
       appConfig,
       accountId: props.env!.account!,
       region: props.env!.region!,
+      staticBucket,
     });
+    // The API reads unblock race puzzles straight out of S3 with ranged GETs,
+    // so the 19MB database never has to ship in the Lambda bundle.
+    staticBucket.grantRead(api.fn);
 
     const { table, analyticsTable } = this.dynamodb();
     table.grantReadWriteData(api.fn);
@@ -70,6 +75,9 @@ export class ApiStack extends Stack {
 
     // EventBridge rules for sudoku of the day
     this.createSudokuCronJobs(domainName, subdomain, cron);
+
+    // EventBridge rules for unblock race of the day / collection of the month
+    this.createUnblockRaceCronJobs(domainName, subdomain, cron);
 
     const exportBucket = this.createExportBucket();
     const exportLambda = this.createExportLambda(table, exportBucket);
@@ -224,6 +232,7 @@ export class ApiStack extends Stack {
       environment: CfnEnvironment;
       configuration: CfnConfigurationProfile;
     };
+    staticBucket: Bucket;
   }) {
     const apiFn = new Function(this, `ApiFunction`, {
       handler: 'main.handler',
@@ -239,6 +248,8 @@ export class ApiStack extends Stack {
       functionName: `Api`,
       environment: {
         API_TABLE: 'ApiStack-ApiTable21517941-1JLBDQLD4OA69',
+        STATIC_BUCKET: options.staticBucket.bucketName,
+        UNBLOCK_RACE_KEY: 'unblock-race/puzzles.bin',
         // https://docs.aws.amazon.com/appconfig/latest/userguide/appconfig-integration-lambda-extensions.html
         AWS_APPCONFIG_EXTENSION_PREFETCH_LIST: Fn.sub(
           '/applications/${applicationId}/environments/${environmentId}/configurations/${configurationId}',
@@ -357,6 +368,101 @@ export class ApiStack extends Stack {
       }),
       targets: [new ApiDestinationTarget(destination)],
     });
+  }
+
+  /**
+   * Pre-warms the unblock race endpoints so the first real caller of the day or
+   * month never pays for puzzle generation.
+   *
+   * Only two rules are needed, unlike sudoku: ofTheDay returns all five
+   * difficulties in a single record, so there is nothing to fan out per
+   * difficulty.
+   */
+  private createUnblockRaceCronJobs(
+    domainName: string,
+    subdomain: string,
+    cron: ApiStackProps['cron'],
+  ) {
+    const apiUrl = `https://${subdomain}.${domainName}`;
+
+    const connection = new Connection(this, 'UnblockRaceApiConnection', {
+      authorization: Authorization.basic(
+        cron.username,
+        SecretValue.unsafePlainText(cron.password),
+      ),
+      description: 'Connection for Unblock Race API calls',
+    });
+
+    // Tomorrow's five puzzles, generated the evening before.
+    const ofTheDayDestination = new ApiDestination(
+      this,
+      'UnblockRaceApiDestination-ofTheDay',
+      {
+        connection,
+        endpoint: `${apiUrl}/unblockRace/ofTheDay?isTomorrow=true`,
+        httpMethod: HttpMethod.GET,
+        description: 'API destination for unblock race of the day',
+      },
+    );
+
+    new Rule(this, 'UnblockRaceCronJob-ofTheDay', {
+      schedule: Schedule.cron({
+        hour: '22',
+        minute: '05',
+        day: '*',
+        month: '*',
+        year: '*',
+      }),
+      targets: [new ApiDestinationTarget(ofTheDayDestination)],
+    });
+
+    // Next month's 50 puzzle collection.
+    const collectionDestination = new ApiDestination(
+      this,
+      'UnblockRaceApiDestination-collectionOfTheMonth',
+      {
+        connection,
+        endpoint: `${apiUrl}/unblockRace/collectionOfTheMonth?isNextMonth=true`,
+        httpMethod: HttpMethod.GET,
+        description: 'API destination for unblock race collection of the month',
+      },
+    );
+
+    new Rule(this, 'UnblockRaceCronJob-collectionOfTheMonth', {
+      schedule: Schedule.cron({
+        hour: '22',
+        minute: '06',
+        day: '27',
+        month: '*',
+        year: '*',
+      }),
+      targets: [new ApiDestinationTarget(collectionDestination)],
+    });
+  }
+
+  /**
+   * Static files the API reads at runtime, e.g. the unblock race puzzle
+   * database at unblock-race/puzzles.bin.
+   *
+   * Contents are NOT deployed by CDK: files are committed to the repo and
+   * uploaded separately with `npm run static:sync`, which keeps large, rarely
+   * changing assets out of every stack deployment. A fresh environment needs
+   * that sync run once before the endpoints that depend on them will work.
+   */
+  private createStaticBucket() {
+    const staticBucket = new Bucket(this, 'StaticBucket', {
+      // Everything here is reproducible from the repo, so it is disposable.
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+
+    new CfnOutput(this, 'StaticBucketName', {
+      value: staticBucket.bucketName,
+      description:
+        'Bucket holding static files the API reads at runtime (populated by static:sync)',
+    });
+
+    return staticBucket;
   }
 
   private createExportBucket() {

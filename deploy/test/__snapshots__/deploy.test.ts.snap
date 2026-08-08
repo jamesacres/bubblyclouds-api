@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`Api Stack 1`] = `
+exports[`Api Stack matches the synthesized template 1`] = `
 {
   "Outputs": {
     "ApiGatewayEndpoint5AA8EC3A": {
@@ -25,6 +25,12 @@ exports[`Api Stack 1`] = `
         ],
       },
     },
+    "StaticBucketName": {
+      "Description": "Bucket holding static files the API reads at runtime (populated by static:sync)",
+      "Value": {
+        "Ref": "StaticBucket92253581",
+      },
+    },
   },
   "Parameters": {
     "BootstrapVersion": {
@@ -42,7 +48,7 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "958624c0666bdfab1d69bdd72383f5e0b8a6c3284f862eafc9f0f5f206789b3f.zip",
+          "S3Key": Any<String>,
         },
         "Environment": {
           "Variables": {
@@ -364,6 +370,10 @@ exports[`Api Stack 1`] = `
                 },
               ],
             },
+            "STATIC_BUCKET": {
+              "Ref": "StaticBucket92253581",
+            },
+            "UNBLOCK_RACE_KEY": "unblock-race/puzzles.bin",
           },
         },
         "FunctionName": "Api",
@@ -456,6 +466,36 @@ exports[`Api Stack 1`] = `
                   },
                 ],
               },
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StaticBucket92253581",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StaticBucket92253581",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
             },
             {
               "Action": [
@@ -939,7 +979,7 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip",
+          "S3Key": Any<String>,
         },
         "Description": {
           "Fn::Join": [
@@ -947,7 +987,7 @@ exports[`Api Stack 1`] = `
             [
               "Lambda function for auto-deleting objects in ",
               {
-                "Ref": "ExportBucket4E99310E",
+                "Ref": "StaticBucket92253581",
               },
               " S3 bucket.",
             ],
@@ -1088,7 +1128,7 @@ exports[`Api Stack 1`] = `
       "Properties": {
         "Code": {
           "S3Bucket": "cdk-hnb659fds-assets-12345678-eu-west-2",
-          "S3Key": "db1b0cd311ae2d9713821051f24746391b435f038ad0e69c8d08196556896372.zip",
+          "S3Key": Any<String>,
         },
         "Environment": {
           "Variables": {
@@ -1267,6 +1307,90 @@ exports[`Api Stack 1`] = `
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "StaticBucket92253581": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "aws-cdk:auto-delete-objects",
+            "Value": "true",
+          },
+        ],
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "StaticBucketAutoDeleteObjectsCustomResource0863C8EB": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "StaticBucketPolicy4D0F6D8E",
+      ],
+      "Properties": {
+        "BucketName": {
+          "Ref": "StaticBucket92253581",
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::S3AutoDeleteObjects",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "StaticBucketPolicy4D0F6D8E": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "StaticBucket92253581",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:PutBucketPolicy",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+                    "Arn",
+                  ],
+                },
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "StaticBucket92253581",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "StaticBucket92253581",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
     },
     "SudokuApiConnection254817E5": {
       "Properties": {
@@ -1597,6 +1721,181 @@ exports[`Api Stack 1`] = `
             "RoleArn": {
               "Fn::GetAtt": [
                 "SudokuApiDestinationsimpleEventsRoleE5E09199",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "UnblockRaceApiConnectionF8E77124": {
+      "Properties": {
+        "AuthParameters": {
+          "BasicAuthParameters": {
+            "Password": "mockPassword",
+            "Username": "mockUsername",
+          },
+        },
+        "AuthorizationType": "BASIC",
+        "Description": "Connection for Unblock Race API calls",
+      },
+      "Type": "AWS::Events::Connection",
+    },
+    "UnblockRaceApiDestinationcollectionOfTheMonthApiDestinationA9DC7F97": {
+      "Properties": {
+        "ConnectionArn": {
+          "Fn::GetAtt": [
+            "UnblockRaceApiConnectionF8E77124",
+            "Arn",
+          ],
+        },
+        "Description": "API destination for unblock race collection of the month",
+        "HttpMethod": "GET",
+        "InvocationEndpoint": "https://mocksubdomain.mockdomain.test/unblockRace/collectionOfTheMonth?isNextMonth=true",
+      },
+      "Type": "AWS::Events::ApiDestination",
+    },
+    "UnblockRaceApiDestinationcollectionOfTheMonthEventsRole69A397F9": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "UnblockRaceApiDestinationcollectionOfTheMonthEventsRoleDefaultPolicy0F6F54FB": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "events:InvokeApiDestination",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "UnblockRaceApiDestinationcollectionOfTheMonthApiDestinationA9DC7F97",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "UnblockRaceApiDestinationcollectionOfTheMonthEventsRoleDefaultPolicy0F6F54FB",
+        "Roles": [
+          {
+            "Ref": "UnblockRaceApiDestinationcollectionOfTheMonthEventsRole69A397F9",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "UnblockRaceApiDestinationofTheDayApiDestinationF96FDFF0": {
+      "Properties": {
+        "ConnectionArn": {
+          "Fn::GetAtt": [
+            "UnblockRaceApiConnectionF8E77124",
+            "Arn",
+          ],
+        },
+        "Description": "API destination for unblock race of the day",
+        "HttpMethod": "GET",
+        "InvocationEndpoint": "https://mocksubdomain.mockdomain.test/unblockRace/ofTheDay?isTomorrow=true",
+      },
+      "Type": "AWS::Events::ApiDestination",
+    },
+    "UnblockRaceApiDestinationofTheDayEventsRole43B0F826": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "UnblockRaceApiDestinationofTheDayEventsRoleDefaultPolicyF71CE020": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "events:InvokeApiDestination",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "UnblockRaceApiDestinationofTheDayApiDestinationF96FDFF0",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "UnblockRaceApiDestinationofTheDayEventsRoleDefaultPolicyF71CE020",
+        "Roles": [
+          {
+            "Ref": "UnblockRaceApiDestinationofTheDayEventsRole43B0F826",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "UnblockRaceCronJobcollectionOfTheMonth81E41B68": {
+      "Properties": {
+        "ScheduleExpression": "cron(06 22 27 * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "UnblockRaceApiDestinationcollectionOfTheMonthApiDestinationA9DC7F97",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "UnblockRaceApiDestinationcollectionOfTheMonthEventsRole69A397F9",
+                "Arn",
+              ],
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "UnblockRaceCronJobofTheDayA526BDDF": {
+      "Properties": {
+        "ScheduleExpression": "cron(05 22 * * ? *)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "UnblockRaceApiDestinationofTheDayApiDestinationF96FDFF0",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "RoleArn": {
+              "Fn::GetAtt": [
+                "UnblockRaceApiDestinationofTheDayEventsRole43B0F826",
                 "Arn",
               ],
             },

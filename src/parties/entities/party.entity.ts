@@ -3,12 +3,13 @@ import { Party } from '../dto/party';
 import { Model } from '@/types/enums/model';
 import { MemberEntity } from '@/members/entities/member.entity';
 import { EntitlementDuration } from '@/types/enums/entitlement-duration.enum';
+import { App } from '@/types/enums/app.enum';
 
 const DEFAULT_MAX_SIZE = 5;
 
 export class PartyEntity implements Party {
   partyId: string;
-  appId: string;
+  appId: App;
   partyName: string;
   createdBy: string;
   maxSize: number;

@@ -27,8 +27,13 @@ Rules:
 - Secrets come from `AppConfig` via `ConfigService` — never hard-code apiKeys,
   adminUsers, codes or the RevenueCat key.
 - Do not commit `dist/` or `coverage/` (build/test output, gitignored).
-  `wasm/`, `sudoku-seeds/` and `src/lib/qqwing/` are vendored code checked
-  into git and required at runtime — never delete or gitignore them.
+  `wasm/`, `sudoku-seeds/`, `static/` and `src/lib/qqwing/` are vendored
+  code/data checked into git and required at runtime — never delete or
+  gitignore them.
+- `static/` is NOT bundled into `dist/` (`unblock-race/puzzles.bin` alone is
+  ~19MB). It reaches production via `npm --prefix ./deploy run static:sync`,
+  which must be run once after the first `cdk:deploy` and again whenever the
+  static files change.
 - Co-locate a `*.spec.ts` with every new source file; unit coverage thresholds
   are enforced (95% statements/functions/lines, 85% branches).
 - When moving or changing files, update the co-located test files.

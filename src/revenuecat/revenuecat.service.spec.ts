@@ -1,15 +1,19 @@
 import { RevenuecatService } from './revenuecat.service';
 import { Entitlement } from '@/types/enums/entitlement.enum';
 import { EntitlementDuration } from '@/types/enums/entitlement-duration.enum';
+import { App } from '@/types/enums/app.enum';
 
 describe('RevenuecatService', () => {
   const realFetch = global.fetch;
   let configService: { get: jest.Mock };
   let service: RevenuecatService;
   let fetchMock: jest.Mock;
+  const app = 'mockapp' as App;
 
   beforeEach(() => {
-    configService = { get: jest.fn().mockReturnValue({ apiKey: 'rc-key' }) };
+    configService = {
+      get: jest.fn().mockReturnValue({ [app]: { apiKey: 'rc-key' } }),
+    };
     service = new RevenuecatService(configService as never);
     fetchMock = jest.fn();
     global.fetch = fetchMock as unknown as typeof fetch;
@@ -33,7 +37,7 @@ describe('RevenuecatService', () => {
           },
         }),
       });
-      expect(await service.hasEntitlement('user1', Entitlement.PLUS)).toBe(
+      expect(await service.hasEntitlement(app, 'user1', Entitlement.PLUS)).toBe(
         true,
       );
       expect(fetchMock).toHaveBeenCalledWith(
@@ -53,7 +57,7 @@ describe('RevenuecatService', () => {
           },
         }),
       });
-      expect(await service.hasEntitlement('user1', Entitlement.PLUS)).toBe(
+      expect(await service.hasEntitlement(app, 'user1', Entitlement.PLUS)).toBe(
         true,
       );
     });
@@ -69,7 +73,7 @@ describe('RevenuecatService', () => {
           },
         }),
       });
-      expect(await service.hasEntitlement('user1', Entitlement.PLUS)).toBe(
+      expect(await service.hasEntitlement(app, 'user1', Entitlement.PLUS)).toBe(
         false,
       );
     });
@@ -80,7 +84,7 @@ describe('RevenuecatService', () => {
         ok: false,
         json: async () => ({}),
       });
-      expect(await service.hasEntitlement('user1', Entitlement.PLUS)).toBe(
+      expect(await service.hasEntitlement(app, 'user1', Entitlement.PLUS)).toBe(
         false,
       );
     });
@@ -88,7 +92,7 @@ describe('RevenuecatService', () => {
     it('throws when the api key is missing', async () => {
       configService.get.mockReturnValue(undefined);
       await expect(
-        service.hasEntitlement('user1', Entitlement.PLUS),
+        service.hasEntitlement(app, 'user1', Entitlement.PLUS),
       ).rejects.toThrow('missing apiKey');
     });
 
@@ -99,7 +103,7 @@ describe('RevenuecatService', () => {
         json: async () => ({ error: 'boom' }),
       });
       await expect(
-        service.hasEntitlement('user1', Entitlement.PLUS),
+        service.hasEntitlement(app, 'user1', Entitlement.PLUS),
       ).rejects.toThrow('unexpected response status');
     });
 
@@ -110,7 +114,7 @@ describe('RevenuecatService', () => {
         json: jest.fn().mockRejectedValue(new Error('not json')),
       });
       await expect(
-        service.hasEntitlement('user1', Entitlement.PLUS),
+        service.hasEntitlement(app, 'user1', Entitlement.PLUS),
       ).rejects.toThrow('unexpected response status');
     });
   });
@@ -119,6 +123,7 @@ describe('RevenuecatService', () => {
     it('grants a lifetime entitlement', async () => {
       fetchMock.mockResolvedValue({ status: 204, ok: true });
       await service.grantEntitlement(
+        app,
         'user1',
         Entitlement.PLUS,
         EntitlementDuration.LIFETIME,
@@ -130,6 +135,7 @@ describe('RevenuecatService', () => {
     it('grants a one-month entitlement with an end time', async () => {
       fetchMock.mockResolvedValue({ status: 204, ok: true });
       await service.grantEntitlement(
+        app,
         'user1',
         Entitlement.PLUS,
         EntitlementDuration.ONE_MONTH,
@@ -141,6 +147,7 @@ describe('RevenuecatService', () => {
     it('grants a one-year entitlement with an end time', async () => {
       fetchMock.mockResolvedValue({ status: 204, ok: true });
       await service.grantEntitlement(
+        app,
         'user1',
         Entitlement.PLUS,
         EntitlementDuration.ONE_YEAR,

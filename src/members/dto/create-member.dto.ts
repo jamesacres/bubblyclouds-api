@@ -5,10 +5,10 @@ export class CreateMemberDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  inviteId: string;
+  inviteId!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  memberNickname: string;
+  memberNickname!: string;
 }

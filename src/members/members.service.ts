@@ -13,6 +13,7 @@ import { PartyEntity } from '@/parties/entities/party.entity';
 import { Model } from '@/types/enums/model';
 import { RevenuecatService } from '@/revenuecat/revenuecat.service';
 import { Entitlement } from '@/types/enums/entitlement.enum';
+import { splitAppModelId } from '@/utils/splitAppModelId';
 
 @Injectable()
 export class MembersService {
@@ -48,28 +49,30 @@ export class MembersService {
     });
 
     if (invite.entitlementDuration) {
-      const hasPlus = await this.revenuecatService
-        .hasEntitlement(userId, Entitlement.PLUS)
-        .catch((e) => {
-          console.error(e);
-          return false;
-        });
-      if (hasPlus) {
-        console.info(`${userId} already has plus`);
-      } else {
-        // Give entitlement for duration if they don't already have it
-        console.info(
-          `Give entitlement to ${userId} for duration ${invite.entitlementDuration}`,
-        );
-        this.revenuecatService
-          .grantEntitlement(
+      try {
+        const { app } = splitAppModelId(splitModelId(invite.resourceId)[1]);
+        const hasPlus = await this.revenuecatService
+          .hasEntitlement(app, userId, Entitlement.PLUS)
+          .catch((e) => {
+            console.error(e);
+            return false;
+          });
+        if (hasPlus) {
+          console.info(`${userId} already has plus`);
+        } else {
+          // Give entitlement for duration if they don't already have it
+          console.info(
+            `Give entitlement to ${userId} for duration ${invite.entitlementDuration}`,
+          );
+          await this.revenuecatService.grantEntitlement(
+            app,
             userId,
             Entitlement.PLUS,
             invite.entitlementDuration,
-          )
-          .catch((e) => {
-            console.error(e);
-          });
+          );
+        }
+      } catch (e) {
+        console.error(e);
       }
     }
 

@@ -93,6 +93,24 @@ describe('SessionsService', () => {
         NotFoundException,
       );
     });
+
+    it('returns no parties for an app not in APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE', async () => {
+      const appEnum = jest.requireActual('@/types/enums/app.enum');
+      jest
+        .spyOn(appEnum.APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE, 'includes')
+        .mockReturnValue(false);
+      sessionRepository.find.mockResolvedValue({
+        sessionId: 'sudoku-s1',
+        userId: 'user1',
+        state: {},
+      });
+
+      const result = await service.findOne('sudoku-s1', 'user1');
+      expect(result).toMatchObject({ sessionId: 'sudoku-s1', parties: {} });
+      expect(partiesService.findAllForUser).not.toHaveBeenCalled();
+
+      jest.restoreAllMocks();
+    });
   });
 
   describe('update', () => {
@@ -112,6 +130,26 @@ describe('SessionsService', () => {
         { state: { a: 1 } },
       );
       expect(result).toMatchObject({ sessionId: 'sudoku-s1', parties: {} });
+    });
+
+    it('returns no parties for an app not in APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE', async () => {
+      const appEnum = jest.requireActual('@/types/enums/app.enum');
+      jest
+        .spyOn(appEnum.APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE, 'includes')
+        .mockReturnValue(false);
+      sessionRepository.upsert.mockResolvedValue({
+        sessionId: 'sudoku-s1',
+        userId: 'user1',
+        state: { a: 1 },
+      });
+
+      const result = await service.update('sudoku-s1', 'user1', {
+        state: { a: 1 },
+      } as never);
+      expect(result).toMatchObject({ sessionId: 'sudoku-s1', parties: {} });
+      expect(partiesService.findAllForUser).not.toHaveBeenCalled();
+
+      jest.restoreAllMocks();
     });
   });
 

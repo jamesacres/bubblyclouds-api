@@ -36,6 +36,7 @@ ones, never the reverse.
 │   MembersModule    — party membership                                  │
 │   SessionsModule   — per-app game/session state                        │
 │   SudokuModule     — sudoku puzzle generation + book seeds             │
+│   UnblockRaceModule — Rush Hour puzzle of the day / month               │
 │   AgentModule      — Bedrock inline agent + local MCP tool server      │
 │   RevenuecatModule — RevenueCat entitlement lookups (no controller)    │
 └─────────────────────────────────────────────────────────────────────┘

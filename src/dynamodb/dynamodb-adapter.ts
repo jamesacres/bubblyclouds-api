@@ -262,7 +262,7 @@ export class DynamoDBAdapter<T extends BaseModel> {
           },
         };
         await this.doBatchWrite(params);
-      } catch (e) {
+      } catch (e: any) {
         console.error(e);
         errors.push(e);
       }

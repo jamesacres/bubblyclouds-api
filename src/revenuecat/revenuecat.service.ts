@@ -1,3 +1,4 @@
+import { App } from '@/types/enums/app.enum';
 import { EntitlementDuration } from '@/types/enums/entitlement-duration.enum';
 import { Entitlement } from '@/types/enums/entitlement.enum';
 import { AppConfig } from '@/types/interfaces/appConfig';
@@ -12,13 +13,15 @@ export class RevenuecatService {
   constructor(readonly configService: ConfigService<AppConfig, true>) {}
 
   private async fetchApi<T>(
+    app: App,
     method: 'GET' | 'POST',
     uri: string,
     body?: object,
   ): Promise<T | undefined> {
     const config =
       this.configService.get<AppConfig['revenueCat']>('revenueCat');
-    if (!config?.apiKey) {
+    const apiKey = config?.[app]?.apiKey;
+    if (!apiKey) {
       throw Error('fetchApi missing apiKey');
     }
     const response = await fetch(`https://api.revenuecat.com${uri}`, {
@@ -26,7 +29,7 @@ export class RevenuecatService {
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: {
-        authorization: `Bearer ${config.apiKey}`,
+        authorization: `Bearer ${apiKey}`,
         'content-type': 'application/json',
       },
     });
@@ -50,6 +53,7 @@ export class RevenuecatService {
   }
 
   public async hasEntitlement(
+    app: App,
     userId: string,
     entitlement: Entitlement,
   ): Promise<boolean> {
@@ -59,7 +63,7 @@ export class RevenuecatService {
           [key in Entitlement]: { expires_date: string | null };
         };
       };
-    }>('GET', `/v1/subscribers/${encodeURIComponent(userId)}`);
+    }>(app, 'GET', `/v1/subscribers/${encodeURIComponent(userId)}`);
     const entitlementDetails = customer?.subscriber.entitlements[entitlement];
     const entitlementActive: boolean =
       !!entitlementDetails &&
@@ -69,6 +73,7 @@ export class RevenuecatService {
   }
 
   public async grantEntitlement(
+    app: App,
     userId: string,
     entitlement: Entitlement,
     entitlementDuration: EntitlementDuration,
@@ -86,6 +91,7 @@ export class RevenuecatService {
       length.end_time_ms = endTime.getTime();
     }
     await this.fetchApi(
+      app,
       'POST',
       `/v1/subscribers/${encodeURIComponent(userId)}/entitlements/${encodeURIComponent(entitlement)}/promotional`,
       { ...length },

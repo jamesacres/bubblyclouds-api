@@ -5,11 +5,14 @@ import {
   SessionWithPartiesDto,
 } from './dto/session-with-parties.dto';
 import { SessionRepository } from './repository/session.repository';
-import { splitSessionId } from '@/utils/splitSessionId';
+import { splitAppModelId } from '@/utils/splitAppModelId';
 import { PartiesService } from '@/parties/parties.service';
 import { MemberRepository } from '@/members/repository/member.repository';
 import { SessionEntity } from './entities/session.entity';
-import { App } from '@/types/enums/app.enum';
+import {
+  App,
+  APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE,
+} from '@/types/enums/app.enum';
 import { SessionDto } from './dto/session.dto';
 
 @Injectable()
@@ -24,7 +27,7 @@ export class SessionsService {
     sessionId: string,
     userId: string,
   ): Promise<Record<string, PartyMemberSession>> {
-    const { app } = splitSessionId(sessionId);
+    const { app } = splitAppModelId(sessionId);
     const parties = await this.partiesService.findAllForUser(userId, app, true);
     const result: SessionWithPartiesDto['parties'] = (
       await Promise.all(
@@ -84,9 +87,12 @@ export class SessionsService {
     if (!session) {
       throw new NotFoundException('Session not found');
     }
+    const { app } = splitAppModelId(sessionId);
     const result: SessionWithPartiesDto = {
       ...session,
-      parties: await this.findPartyMemberSessions(sessionId, userId),
+      parties: APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE.includes(app)
+        ? await this.findPartyMemberSessions(sessionId, userId)
+        : {},
     };
     return result;
   }
@@ -101,9 +107,12 @@ export class SessionsService {
       userId,
       updateSessionDto,
     );
+    const { app } = splitAppModelId(sessionId);
     const result: SessionWithPartiesDto = {
       ...session,
-      parties: await this.findPartyMemberSessions(sessionId, userId),
+      parties: APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE.includes(app)
+        ? await this.findPartyMemberSessions(sessionId, userId)
+        : {},
     };
     return result;
   }
