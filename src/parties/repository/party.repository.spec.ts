@@ -14,7 +14,7 @@ const makeAdapter = () => ({
 
 const record = (over: Partial<PartyEntity> = {}) => ({
   partyId: 'sudoku-p1',
-  appId: 'sudoku',
+  appId: App.SUDOKU,
   partyName: 'Party',
   createdBy: 'user1',
   maxSize: 5,

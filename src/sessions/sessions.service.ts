@@ -5,7 +5,7 @@ import {
   SessionWithPartiesDto,
 } from './dto/session-with-parties.dto';
 import { SessionRepository } from './repository/session.repository';
-import { splitSessionId } from '@/utils/splitSessionId';
+import { splitAppModelId } from '@/utils/splitAppModelId';
 import { PartiesService } from '@/parties/parties.service';
 import { MemberRepository } from '@/members/repository/member.repository';
 import { SessionEntity } from './entities/session.entity';
@@ -24,7 +24,7 @@ export class SessionsService {
     sessionId: string,
     userId: string,
   ): Promise<Record<string, PartyMemberSession>> {
-    const { app } = splitSessionId(sessionId);
+    const { app } = splitAppModelId(sessionId);
     const parties = await this.partiesService.findAllForUser(userId, app, true);
     const result: SessionWithPartiesDto['parties'] = (
       await Promise.all(

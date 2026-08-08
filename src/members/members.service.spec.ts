@@ -45,7 +45,7 @@ describe('MembersService', () => {
   describe('create', () => {
     it('joins the resource via the invite with no entitlement', async () => {
       inviteService.findPublicInvite.mockResolvedValue({
-        resourceId: 'party-p1',
+        resourceId: 'party-sudoku-p1',
       });
       memberRepository.insert.mockResolvedValue({ userId: 'user1' });
       const result = await service.create(
@@ -55,7 +55,7 @@ describe('MembersService', () => {
       expect(memberRepository.insert).toHaveBeenCalledWith({
         userId: 'user1',
         memberNickname: 'Nick',
-        resourceId: 'party-p1',
+        resourceId: 'party-sudoku-p1',
       });
       expect(result).toEqual({ userId: 'user1' });
       expect(revenuecatService.grantEntitlement).not.toHaveBeenCalled();
@@ -63,7 +63,7 @@ describe('MembersService', () => {
 
     it('grants an entitlement when the invite carries one and the user lacks Plus', async () => {
       inviteService.findPublicInvite.mockResolvedValue({
-        resourceId: 'party-p1',
+        resourceId: 'party-sudoku-p1',
         entitlementDuration: EntitlementDuration.ONE_MONTH,
       });
       memberRepository.insert.mockResolvedValue({ userId: 'user1' });
@@ -71,6 +71,7 @@ describe('MembersService', () => {
 
       await service.create({ inviteId: 'i1', memberNickname: 'N' }, 'user1');
       expect(revenuecatService.grantEntitlement).toHaveBeenCalledWith(
+        'sudoku',
         'user1',
         Entitlement.PLUS,
         EntitlementDuration.ONE_MONTH,
@@ -79,7 +80,7 @@ describe('MembersService', () => {
 
     it('does not grant when the user already has Plus', async () => {
       inviteService.findPublicInvite.mockResolvedValue({
-        resourceId: 'party-p1',
+        resourceId: 'party-sudoku-p1',
         entitlementDuration: EntitlementDuration.ONE_MONTH,
       });
       memberRepository.insert.mockResolvedValue({ userId: 'user1' });
@@ -91,7 +92,7 @@ describe('MembersService', () => {
 
     it('treats a revenuecat lookup failure as not having Plus', async () => {
       inviteService.findPublicInvite.mockResolvedValue({
-        resourceId: 'party-p1',
+        resourceId: 'party-sudoku-p1',
         entitlementDuration: EntitlementDuration.ONE_YEAR,
       });
       memberRepository.insert.mockResolvedValue({ userId: 'user1' });
@@ -104,27 +105,27 @@ describe('MembersService', () => {
 
   describe('findAll', () => {
     it('returns members when the requester is a member', async () => {
-      partyRepository.find.mockResolvedValue({ partyId: 'p1' });
+      partyRepository.find.mockResolvedValue({ partyId: 'sudoku-p1' });
       memberRepository.findAllMembersForResource.mockResolvedValue([
         { userId: 'user1' },
       ]);
-      const result = await service.findAll('party-p1', 'user1');
+      const result = await service.findAll('party-sudoku-p1', 'user1');
       expect(result).toEqual([{ userId: 'user1' }]);
     });
 
     it('throws Forbidden when the resource does not exist', async () => {
       partyRepository.find.mockResolvedValue(undefined);
-      await expect(service.findAll('party-p1', 'user1')).rejects.toThrow(
+      await expect(service.findAll('party-sudoku-p1', 'user1')).rejects.toThrow(
         ForbiddenException,
       );
     });
 
     it('throws NotFound when the requester is not a member', async () => {
-      partyRepository.find.mockResolvedValue({ partyId: 'p1' });
+      partyRepository.find.mockResolvedValue({ partyId: 'sudoku-p1' });
       memberRepository.findAllMembersForResource.mockResolvedValue([
         { userId: 'someone' },
       ]);
-      await expect(service.findAll('party-p1', 'user1')).rejects.toThrow(
+      await expect(service.findAll('party-sudoku-p1', 'user1')).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -133,7 +134,7 @@ describe('MembersService', () => {
   describe('deleteForUser', () => {
     it('lets a user remove themselves', async () => {
       memberRepository.findForUser.mockResolvedValue({ userId: 'user1' });
-      await service.deleteForUser('user1', 'party-p1', 'user1');
+      await service.deleteForUser('user1', 'party-sudoku-p1', 'user1');
       expect(memberRepository.destroy).toHaveBeenCalledWith({
         userId: 'user1',
       });
@@ -141,34 +142,34 @@ describe('MembersService', () => {
     });
 
     it('lets a party owner remove another member', async () => {
-      partyRepository.find.mockResolvedValue({ partyId: 'p1' });
+      partyRepository.find.mockResolvedValue({ partyId: 'sudoku-p1' });
       memberRepository.findForUser.mockResolvedValue({ userId: 'target' });
-      await service.deleteForUser('owner', 'party-p1', 'target');
-      expect(partyRepository.find).toHaveBeenCalledWith('p1', 'owner');
+      await service.deleteForUser('owner', 'party-sudoku-p1', 'target');
+      expect(partyRepository.find).toHaveBeenCalledWith('sudoku-p1', 'owner');
       expect(memberRepository.destroy).toHaveBeenCalled();
     });
 
     it('throws Forbidden when a non-owner tries to remove another member', async () => {
       partyRepository.find.mockResolvedValue(undefined);
       await expect(
-        service.deleteForUser('user1', 'party-p1', 'target'),
+        service.deleteForUser('user1', 'party-sudoku-p1', 'target'),
       ).rejects.toThrow(ForbiddenException);
     });
 
     it('throws NotFound when the member to delete does not exist', async () => {
       memberRepository.findForUser.mockResolvedValue(undefined);
       await expect(
-        service.deleteForUser('user1', 'party-p1', 'user1'),
+        service.deleteForUser('user1', 'party-sudoku-p1', 'user1'),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('looks up the member with the resource owner type/id', async () => {
       memberRepository.findForUser.mockResolvedValue({ userId: 'user1' });
-      await service.deleteForUser('user1', 'party-p1', 'user1');
+      await service.deleteForUser('user1', 'party-sudoku-p1', 'user1');
       expect(memberRepository.findForUser).toHaveBeenCalledWith(
         'user1',
         Model.PARTY,
-        'p1',
+        'sudoku-p1',
       );
     });
   });

@@ -1,9 +1,10 @@
+import { App } from '@/types/enums/app.enum';
 import { PartyEntity } from './party.entity';
 import { EntitlementDuration } from '@/types/enums/entitlement-duration.enum';
 
 const base = {
   partyId: 'sudoku-p1',
-  appId: 'sudoku',
+  appId: App.SUDOKU,
   partyName: 'My Party',
   createdBy: 'user1',
   createdAt: new Date('2024-01-01'),

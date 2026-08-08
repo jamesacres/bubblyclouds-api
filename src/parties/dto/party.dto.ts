@@ -1,3 +1,4 @@
+import { App } from '@/types/enums/app.enum';
 import { EntitlementDuration } from '@/types/enums/entitlement-duration.enum';
 import { ApiProperty } from '@nestjs/swagger';
 import {
@@ -12,22 +13,22 @@ export class PartyDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  partyId: string;
+  partyId!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  appId: string;
+  appId!: App;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  partyName: string;
+  partyName!: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  createdBy: string;
+  createdBy!: string;
 
   @ApiProperty()
   @IsNumber()
@@ -41,9 +42,9 @@ export class PartyDto {
 
   @ApiProperty()
   @IsDate()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
   @IsDate()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -85,6 +85,7 @@ describe('PartiesService', () => {
         'user1',
       );
       expect(revenuecatService.hasEntitlement).toHaveBeenCalledWith(
+        'sudoku',
         'user1',
         Entitlement.PLUS,
       );

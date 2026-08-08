@@ -23,6 +23,7 @@ export class PartiesService {
   ) {}
 
   private async calculateEntitlementDuration(
+    app: App,
     userId: string,
     partyName: string,
   ): Promise<EntitlementDuration | undefined> {
@@ -44,7 +45,7 @@ export class PartiesService {
     }
 
     const hasPlus = await this.revenuecatService
-      .hasEntitlement(userId, Entitlement.PLUS)
+      .hasEntitlement(app, userId, Entitlement.PLUS)
       .catch((e) => {
         console.error(e);
         return false;
@@ -64,6 +65,7 @@ export class PartiesService {
   ): Promise<PartyDto> {
     // Entitlement given to members joining the party
     const entitlementDuration = await this.calculateEntitlementDuration(
+      appId,
       createdBy,
       partyName,
     ).catch((e) => {

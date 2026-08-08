@@ -1,3 +1,5 @@
+import { App } from '../enums/app.enum';
+
 export interface AppConfig {
   apiKeys?: { [username: string]: { password: string } | undefined };
   adminUsers?: string[];
@@ -6,6 +8,6 @@ export interface AppConfig {
     oneYear?: string[];
   };
   revenueCat?: {
-    apiKey: string;
+    [app in App]: { apiKey: string };
   };
 }

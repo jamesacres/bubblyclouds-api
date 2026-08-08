@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { SessionWithPartiesDto } from './dto/session-with-parties.dto';
 import { RequestWithUser } from '@/types/interfaces/requestWithUser';
-import { splitSessionId } from '@/utils/splitSessionId';
+import { splitAppModelId } from '@/utils/splitAppModelId';
 import { App } from '@/types/enums/app.enum';
 import { SessionDto } from './dto/session.dto';
 import { validateApp } from '@/utils/validateApp';
@@ -108,7 +108,7 @@ export class SessionsController {
     @Param('sessionId') sessionId: string,
     @Body() updateSessionDto: UpdateSessionDto,
   ): Promise<SessionWithPartiesDto> {
-    const { app, appSessionId } = splitSessionId(sessionId);
+    const { app, appModelId: appSessionId } = splitAppModelId(sessionId);
     if (!app || !appSessionId || !updateSessionDto.state) {
       throw new BadRequestException('Invalid state');
     }
