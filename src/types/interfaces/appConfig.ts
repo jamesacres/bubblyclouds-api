@@ -8,6 +8,6 @@ export interface AppConfig {
     oneYear?: string[];
   };
   revenueCat?: {
-    [app in App]: { apiKey: string };
+    [app in App]?: { apiKey: string };
   };
 }

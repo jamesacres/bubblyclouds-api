@@ -20,7 +20,7 @@ export class RevenuecatService {
   ): Promise<T | undefined> {
     const config =
       this.configService.get<AppConfig['revenueCat']>('revenueCat');
-    const apiKey = config?.[app].apiKey;
+    const apiKey = config?.[app]?.apiKey;
     if (!apiKey) {
       throw Error('fetchApi missing apiKey');
     }
