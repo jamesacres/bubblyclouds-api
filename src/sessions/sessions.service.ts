@@ -9,7 +9,10 @@ import { splitAppModelId } from '@/utils/splitAppModelId';
 import { PartiesService } from '@/parties/parties.service';
 import { MemberRepository } from '@/members/repository/member.repository';
 import { SessionEntity } from './entities/session.entity';
-import { App } from '@/types/enums/app.enum';
+import {
+  App,
+  APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE,
+} from '@/types/enums/app.enum';
 import { SessionDto } from './dto/session.dto';
 
 @Injectable()
@@ -84,9 +87,12 @@ export class SessionsService {
     if (!session) {
       throw new NotFoundException('Session not found');
     }
+    const { app } = splitAppModelId(sessionId);
     const result: SessionWithPartiesDto = {
       ...session,
-      parties: await this.findPartyMemberSessions(sessionId, userId),
+      parties: APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE.includes(app)
+        ? await this.findPartyMemberSessions(sessionId, userId)
+        : {},
     };
     return result;
   }
@@ -101,9 +107,12 @@ export class SessionsService {
       userId,
       updateSessionDto,
     );
+    const { app } = splitAppModelId(sessionId);
     const result: SessionWithPartiesDto = {
       ...session,
-      parties: await this.findPartyMemberSessions(sessionId, userId),
+      parties: APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE.includes(app)
+        ? await this.findPartyMemberSessions(sessionId, userId)
+        : {},
     };
     return result;
   }

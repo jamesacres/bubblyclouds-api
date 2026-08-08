@@ -21,7 +21,10 @@ import {
 import { SessionWithPartiesDto } from './dto/session-with-parties.dto';
 import { RequestWithUser } from '@/types/interfaces/requestWithUser';
 import { splitAppModelId } from '@/utils/splitAppModelId';
-import { App } from '@/types/enums/app.enum';
+import {
+  App,
+  APPS_ALLOWING_CROSS_USER_SESSION_LOOKUP,
+} from '@/types/enums/app.enum';
 import { SessionDto } from './dto/session.dto';
 import { validateApp } from '@/utils/validateApp';
 import { PartiesService } from '@/parties/parties.service';
@@ -60,8 +63,7 @@ export class SessionsController {
     if (userId && userId !== req.user.sub) {
       // Optional userId allows fetching sessions of a friend
       // Check if the app allows this function
-      const allowedApps = [App.SUDOKU];
-      if (!allowedApps.includes(app)) {
+      if (!APPS_ALLOWING_CROSS_USER_SESSION_LOOKUP.includes(app)) {
         console.warn('App not allowed', app);
         return [];
       }
