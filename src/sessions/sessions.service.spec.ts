@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { App } from '@/types/enums/app.enum';
 
@@ -84,14 +83,19 @@ describe('SessionsService', () => {
       });
       partiesService.findAllForUser.mockResolvedValue([]);
       const result = await service.findOne('sudoku-s1', 'user1');
-      expect(result).toMatchObject({ sessionId: 'sudoku-s1', parties: {} });
+      expect(result).toStrictEqual({
+        sessionId: 'sudoku-s1',
+        parties: {},
+        state: {},
+        userId: 'user1',
+      });
     });
 
-    it('throws when the session does not exist', async () => {
+    it('returns parties when the session does not exist', async () => {
       sessionRepository.find.mockResolvedValue(undefined);
-      await expect(service.findOne('sudoku-s1', 'user1')).rejects.toThrow(
-        NotFoundException,
-      );
+      partiesService.findAllForUser.mockResolvedValue([]);
+      const result = await service.findOne('sudoku-s1', 'user1');
+      expect(result).toStrictEqual({ parties: {} });
     });
 
     it('returns no parties for an app not in APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE', async () => {
