@@ -15,6 +15,7 @@ import { RequirePermissions } from '@/decorators/require-permissions.decorator';
 import { Permission } from '@/types/enums/permission.enum';
 import {
   ApiBearerAuth,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiQuery,
   ApiTags,
@@ -97,6 +98,10 @@ export class SessionsController {
   @ApiOkResponse({
     description: 'Session for the user and all party members.',
     type: SessionWithPartiesDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Session for all party members.',
+    type: SessionNotFoundWithPartiesDto,
   })
   @Get(':sessionId')
   async findOne(
