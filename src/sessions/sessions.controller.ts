@@ -110,11 +110,10 @@ export class SessionsController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<SessionWithPartiesDto | SessionNotFoundWithPartiesDto> {
     const result = await this.sessionsService.findOne(sessionId, req.user.sub);
-    if ('state' in result) {
-      return result;
+    if (!('state' in result)) {
+      // Not found with parties
+      res.status(constants.HTTP_STATUS_NOT_FOUND);
     }
-    // Not found with parties
-    res.status(constants.HTTP_STATUS_NOT_FOUND);
     return result;
   }
 
