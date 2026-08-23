@@ -1,8 +1,13 @@
 import { BadRequestException } from '@nestjs/common';
 import { SessionsController } from './sessions.controller';
 import { App } from '@/types/enums/app.enum';
+import { constants } from 'http2';
+import { Response } from 'express';
 
 const req = (sub = 'user1') => ({ user: { sub } }) as never;
+const res = () => {
+  return { status: jest.fn() } as unknown as Response;
+};
 
 describe('SessionsController', () => {
   let sessionsService: {
@@ -107,11 +112,27 @@ describe('SessionsController', () => {
     });
   });
 
-  it('findOne delegates to the service', async () => {
-    sessionsService.findOne.mockResolvedValue({ sessionId: 'sudoku-s1' });
-    const result = await controller.findOne(req(), 'sudoku-s1');
+  it('findOne delegates to the service, returns with state', async () => {
+    const response = res();
+    sessionsService.findOne.mockResolvedValue({
+      sessionId: 'sudoku-s1',
+      state: {},
+    });
+    const result = await controller.findOne(req(), 'sudoku-s1', response);
     expect(sessionsService.findOne).toHaveBeenCalledWith('sudoku-s1', 'user1');
-    expect(result).toEqual({ sessionId: 'sudoku-s1' });
+    expect(result).toStrictEqual({ sessionId: 'sudoku-s1', state: {} });
+    expect(response.status).not.toHaveBeenCalled();
+  });
+
+  it('findOne returns parties with not found status when no state', async () => {
+    const response = res();
+    sessionsService.findOne.mockResolvedValue({ parties: {} });
+    const result = await controller.findOne(req(), 'sudoku-s1', response);
+    expect(sessionsService.findOne).toHaveBeenCalledWith('sudoku-s1', 'user1');
+    expect(result).toStrictEqual({ parties: {} });
+    expect(response.status).toHaveBeenCalledWith(
+      constants.HTTP_STATUS_NOT_FOUND,
+    );
   });
 
   describe('update', () => {

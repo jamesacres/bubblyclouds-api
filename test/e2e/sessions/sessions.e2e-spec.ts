@@ -84,4 +84,16 @@ describe('Sessions (e2e)', () => {
       .send({})
       .expect(400);
   });
+
+  it('returns not found with parties', async () => {
+    await request(server)
+      .get('/sessions/sudoku-e2e-2')
+      .set('Authorization', bearer())
+      .expect(404)
+      .expect((res: Response) => {
+        expect(res.body).toStrictEqual({
+          parties: {},
+        });
+      });
+  });
 });

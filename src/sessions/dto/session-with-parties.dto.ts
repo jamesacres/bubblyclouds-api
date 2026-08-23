@@ -6,13 +6,23 @@ export class PartyMemberSession {
     type: 'object',
     additionalProperties: { $ref: getSchemaPath(SessionDto) },
   })
-  memberSessions: Record<string, SessionDto>;
+  memberSessions!: Record<string, SessionDto>;
 }
+
 @ApiExtraModels(PartyMemberSession)
 export class SessionWithPartiesDto extends SessionDto {
   @ApiProperty({
     type: 'object',
     additionalProperties: { $ref: getSchemaPath(PartyMemberSession) },
   })
-  parties: Record<string, PartyMemberSession>;
+  parties!: Record<string, PartyMemberSession>;
+}
+
+@ApiExtraModels(PartyMemberSession)
+export class SessionNotFoundWithPartiesDto {
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { $ref: getSchemaPath(PartyMemberSession) },
+  })
+  parties!: Record<string, PartyMemberSession>;
 }

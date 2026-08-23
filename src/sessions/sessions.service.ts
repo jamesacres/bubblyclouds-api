@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import {
   PartyMemberSession,
+  SessionNotFoundWithPartiesDto,
   SessionWithPartiesDto,
 } from './dto/session-with-parties.dto';
 import { SessionRepository } from './repository/session.repository';
@@ -82,17 +83,20 @@ export class SessionsService {
   async findOne(
     sessionId: string,
     userId: string,
-  ): Promise<SessionWithPartiesDto> {
+  ): Promise<SessionWithPartiesDto | SessionNotFoundWithPartiesDto> {
+    const { app } = splitAppModelId(sessionId);
+    const parties = APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE.includes(app)
+      ? await this.findPartyMemberSessions(sessionId, userId)
+      : {};
+
     const session = await this.sessionRepository.find(sessionId, userId);
     if (!session) {
-      throw new NotFoundException('Session not found');
+      // Not found, return parties anyway
+      return { parties };
     }
-    const { app } = splitAppModelId(sessionId);
     const result: SessionWithPartiesDto = {
       ...session,
-      parties: APPS_ALLOWING_PARTY_SESSIONS_IN_RESPONSE.includes(app)
-        ? await this.findPartyMemberSessions(sessionId, userId)
-        : {},
+      parties,
     };
     return result;
   }
